@@ -96,12 +96,12 @@ a{color:inherit}
 .prof-photo .sticker{position:absolute;right:-14px;bottom:34px;background:var(--yellow);border:2px solid var(--ink);border-radius:99px;padding:8px 16px;font-family:var(--f-cav);font-size:19px;transform:rotate(6deg);box-shadow:var(--shadow-s);animation:inPop .7s .5s both}
 .prof-photo .sticker2{position:absolute;left:-18px;top:30px;background:var(--red);color:#fff;border:2px solid var(--ink);border-radius:99px;padding:7px 14px;font-family:var(--f-cav);font-size:17px;transform:rotate(-8deg);box-shadow:var(--shadow-s);animation:inPop .7s .68s both}
 .prof-copy h2{font-size:clamp(28px,3.6vw,44px);line-height:1.28;font-weight:800;letter-spacing:-.5px}
-.prof-copy h2 .circ{position:relative;white-space:nowrap;color:var(--green-deep)}
-.prof-copy h2 .circ svg{position:absolute;left:-8%;top:-16%;width:116%;height:138%;pointer-events:none}
-.prof-copy h2 .circ svg path{stroke:var(--green);stroke-width:5;fill:none;stroke-linecap:round;stroke-dasharray:var(--len,340);stroke-dashoffset:var(--len,340);transition:stroke-dashoffset 1.4s ease .4s}
-.drawn h2 .circ svg path{stroke-dashoffset:0}
+.prof-copy h2 .circ{position:relative;white-space:nowrap;color:var(--green-deep);isolation:isolate}
+.prof-copy h2 .circ svg{position:absolute;left:-6%;top:8%;width:112%;height:120%;pointer-events:none;z-index:-1}
+.prof-copy h2 .circ svg path{stroke:var(--green);stroke-width:5;fill:none;stroke-linecap:round;stroke-dasharray:var(--len,340);stroke-dashoffset:var(--len,340);transition:stroke-dashoffset 1.4s ease .4s;opacity:0}
+.drawn h2 .circ svg path{stroke-dashoffset:0;opacity:1}
 .prof-copy h2 .uline{position:relative;white-space:nowrap}
-.prof-copy h2 .uline::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:9px;background:var(--yellow);border-radius:9px;transform:scaleX(.06);transform-origin:left;transition:transform 1s ease .9s}
+.prof-copy h2 .uline::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:9px;background:var(--yellow);border-radius:9px;transform:scaleX(0);transform-origin:left;transition:transform 1s ease .9s}
 .drawn h2 .uline::after{transform:scaleX(1)}
 .prof-copy .lead{margin-top:26px;font-size:15.5px;line-height:2.02;color:#3B382F}
 .prof-copy .lead b{color:var(--ink)}
@@ -111,8 +111,9 @@ a{color:inherit}
 .stat{background:var(--paper);border:2px solid var(--ink);border-radius:14px;padding:18px 14px 14px;box-shadow:var(--shadow-s);position:relative}
 .stat:nth-child(odd){transform:rotate(-.7deg)}
 .stat:nth-child(even){transform:rotate(.8deg)}
-.stat b{font-family:var(--f-disp);font-size:clamp(28px,3vw,40px);font-weight:800;color:var(--green-deep);display:block;line-height:1}
-.stat b i{font-style:normal;font-size:19px;color:var(--green)}
+.stat b{font-family:var(--f-disp);font-size:clamp(56px,6vw,84px);font-weight:800;color:var(--green-deep);display:block;line-height:1}
+.stat b span[data-count]{font-size:clamp(56px,6vw,84px)}
+.stat b i{font-style:normal;font-size:30px;color:var(--green)}
 .stat span{display:block;margin-top:6px;font-size:12px;letter-spacing:1px;color:var(--muted)}
 .stat .ico{position:absolute;top:-14px;right:-8px;width:30px;height:30px;border-radius:99px;border:2px solid var(--ink);display:grid;place-items:center;font-size:14px}
 .stat:nth-child(1) .ico{background:var(--yellow)}
@@ -319,6 +320,12 @@ footer b{color:var(--cream);font-family:var(--f-disp)}
 /* ============ 全局极光深色底（v3.1） ============ */
 html{background:#04101c}
 body{background:transparent;--shadow:4px 4px 0 rgba(255,255,255,.85);--shadow-s:3px 3px 0 rgba(255,255,255,.8)}
+
+/* ============ 光标流星（光标直接变为流星，隐藏默认指针） ============ */
+body.cur-meteor, body.cur-meteor a, body.cur-meteor button, body.cur-meteor .card, body.cur-meteor .cert, body.cur-meteor img{cursor:none}
+#meteor{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:99999}
+@media (prefers-reduced-motion: reduce){ #meteor{display:none} body.cur-meteor, body.cur-meteor a, body.cur-meteor button, body.cur-meteor .card, body.cur-meteor .cert, body.cur-meteor img{cursor:auto} }
+
 #aurora{position:fixed;inset:0;width:100%;height:100%;z-index:-1}
 .hero{background:transparent}
 .webgl-fallback{position:fixed}
@@ -676,7 +683,7 @@ footer{background:#02090f;border-top-color:rgba(255,255,255,.3)}
   <p class="p-story rv">毕业作品集的名字叫《行走》。四年里我把黄土高原的窑洞聚落、大汉山顶的祈福广场、幼儿园的彩色立面都走了一遍——用脚调研，用笔思考。大三那年的 CIID 设计艺术展，「归·巢」生土窑洞社区方案拿回<b>金奖</b>、宝氮幼儿园拿回<b>人文关怀奖</b>，那是「行走」第一次被行业看见。</p>
   <div class="cards">
     <div class="card rv" data-story="shengtu">
-      <div class="thumb"><span class="badge">CIID 金奖</span><img src="assets/pages/ug_gchero.jpg" alt="归巢"></div>
+      <div class="thumb"><span class="badge">CIID 金奖</span><img src="assets/pages/ug_gc01.jpg" alt="归巢"></div>
       <div class="body"><h4>归 · 巢——生土聚落未来社区 <span class="yr">2012-13</span></h4>
       <p>「归·巢」——黄土高原生土窑洞社区规划设计：调研、理论、概念、空间图式四篇递进，一套完整展板</p>
       <div class="tags"><span>聚落更新</span><span>生土建筑</span><span>CIID 金奖</span></div></div>
@@ -781,7 +788,7 @@ secs:[
 {h:'故事',p:'这是学生时代参与的一个真实项目：南郑县大汉山顶的祈福广场。方案以一个「衍」字贯穿——生长、繁衍、延续。我希望广场建筑与自然美景融为一体，把南郑县城与汉中全景尽收眼底，创造山地景观保护开发利用的新模式，塑造专属于当代人的文化精神场所。'},
 {h:'展板',p:'完整方案由九张展板构成——从「衍」字立意、区位与案例分析，到图解演绎、水墨表现与全景鸟瞰。水墨是这套方案的母语：总平面用灰色调渲染出螺旋形建筑体量与圆形广场，配以《诗经·旱麓》的竖排诗句；夜景效果图里，下沉广场的暖黄灯光与发光灯阵让「祈福」有了具体的温度。',imgs:['assets/pages/ug_dh01.jpg','assets/pages/ug_dh02.jpg','assets/pages/ug_dh04.jpg','assets/pages/ug_dh05.jpg','assets/pages/ug_dh06.jpg','assets/pages/ug_dh07.jpg','assets/pages/ug_dh08.jpg','assets/pages/ug_dh09.jpg','assets/pages/ug_dh10.jpg'],cap:'九张展板全览 · 「衍」封面 / 项目立意 / 区位与总图 / 案例与场地分析 / 图解与历史影像 / 水墨表现 / 全景鸟瞰长卷 / 夜景组合 / 光柱夜景'},
 {h:'回响',p:'第一次跟着真实场地、真实业主、真实造价走完一个完整项目——「依山就势、天人合一」这八个字，从图纸上的口号变成了落地的约束条件。这比任何奖项都更早地教会我：设计是妥协的艺术。'}]};
-S.shengtu={t:'归 · 巢',sub:'生土聚落未来社区规划设计 · 本科一年级 · CIID 金奖',tags:['聚落更新','生土建筑','CIID 金奖'],hero:'assets/pages/ug_gchero.jpg',
+S.shengtu={t:'归 · 巢',sub:'生土聚落未来社区规划设计 · 本科一年级 · CIID 金奖',tags:['聚落更新','生土建筑','CIID 金奖'],hero:'assets/pages/ug_gc01.jpg',
 quote:'窑洞不只是房子，它是黄土高原上人与土地最古老的一份契约。',
 secs:[
 {h:'起点',p:'本科一年级的第一个完整设计。从陕西黄土高原的实地调研开始：拍黄土坡、量窑洞、记录村落肌理，把生土建筑的真实现状带回图板。'},
@@ -804,7 +811,7 @@ S.shouhui={t:'律动 · 足迹 & 手绘小品',sub:'北京延庆妫河创意产�
 quote:'手绘是设计师随身携带的思考方式——它从来没离开过我的课堂。',
 secs:[
 {h:'产业园',p:'「律动·足迹——北京延庆妫河创意产业园」，用地约 4000㎡，主题「让人与环境和谐为本」。流线型曲面屋顶、屋顶天光与通风口、曲线栏杆与连廊庭院，在轴测图上被逐点标注——用有机的建筑语言连接学习与工作的过渡地带。'},
-{h:'手绘',p:'马克笔与水彩的景观手绘小品——亭子、花架、水景、滨水绿地、欧式街景，加上两张景观快题设计（总平面 + 鸟瞰 + 节点透视的完整快题版式）。本科四年的手上功夫，如今全部还给了学生的作业本上。',imgs:['assets/pages/ug_p14.jpg'],cap:'景观手绘小品 + 快题设计版面'}]};
+{h:'手绘',p:'马克笔与水彩的景观手绘小品——亭子、花架、水景、滨水绿地、欧式街景，加上两张景观快题设计（总平面 + 鸟瞰 + 节点透视的完整快题版式）。本科四年的手上功夫，如今全部还给了学生的作业本上。',imgs:['assets/pages/ug_p14.jpg','assets/shouhui/sh_01.jpg','assets/shouhui/sh_02.jpg','assets/shouhui/sh_03.jpg','assets/shouhui/sh_04.jpg','assets/shouhui/sh_05.jpg','assets/shouhui/sh_06.jpg'],cap:'景观手绘小品 + 快题设计版面'}]};
 S.taohuayuan={t:'江西上犹桃花源度假酒店景观内庭',sub:'上犹桃花源度假酒店 · 酒店景观内庭 · 2017-18 · Small Scale',tags:['酒店景观','新中式','山水印炼'],hero:'assets/pages/mg_p03.jpg',
 quote:'把桃花源的美好山水印炼为一种语言，在诗意之上获得空间与人之间的对话。',
 secs:[
@@ -1340,6 +1347,81 @@ function initLab(){
     document.getElementById('labSpin').style.display='none';
   });
 }
+
+/* ============ 光标流星（光标即流星 · 平滑跟随 · 呼吸闪烁 · 自然尾迹） ============ */
+(function(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if(matchMedia('(pointer: coarse)').matches) return; // 触屏设备不启用
+  document.body.classList.add('cur-meteor');
+  var cv=document.createElement('canvas');
+  cv.id='meteor';
+  document.body.appendChild(cv);
+  var ctx=cv.getContext('2d');
+  var dpr=Math.min(devicePixelRatio||1,1.5);
+  var W,H;
+  function resize(){ W=cv.width=innerWidth*dpr; H=cv.height=innerHeight*dpr; cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px'; }
+  resize(); addEventListener('resize',resize);
+
+  var mx=innerWidth/2*dpr, my=innerHeight/2*dpr;
+  var hx=mx, hy=my;                              // 流星头（平滑跟随）
+  var trail=[];                                  // 尾迹历史点
+
+  addEventListener('mousemove',function(e){ mx=e.clientX*dpr; my=e.clientY*dpr; },{passive:true});
+  addEventListener('mousedown',function(e){ mx=e.clientX*dpr; my=e.clientY*dpr; });
+
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    var now=performance.now();
+
+    // 平滑跟随（带惯性）
+    hx+=(mx-hx)*.42; hy+=(my-hy)*.42;
+
+    // 记录尾迹（较短，保持流星小）
+    trail.push({x:hx,y:hy,t:now});
+    while(trail.length>14) trail.shift();
+
+    var n=trail.length;
+
+    // 尾迹光带：从头部向后渐隐，用二次贝塞尔画平滑弧线
+    if(n>2){
+      var tail=trail[0];
+      var grad=ctx.createLinearGradient(tail.x,tail.y,hx,hy);
+      grad.addColorStop(0,'rgba(160,220,255,0)');
+      grad.addColorStop(.5,'rgba(180,235,255,.22)');
+      grad.addColorStop(1,'rgba(235,252,255,.8)');
+      ctx.strokeStyle=grad;
+      ctx.lineCap='round';
+      ctx.lineJoin='round';
+      ctx.lineWidth=2*dpr;
+      ctx.beginPath();
+      ctx.moveTo(tail.x,tail.y);
+      for(var i=1;i<n-1;i++){
+        var qx=(trail[i].x+trail[i+1].x)/2;
+        var qy=(trail[i].y+trail[i+1].y)/2;
+        ctx.quadraticCurveTo(trail[i].x,trail[i].y,qx,qy);
+      }
+      ctx.quadraticCurveTo(trail[n-1].x,trail[n-1].y,hx,hy);
+      ctx.stroke();
+    }
+
+    // 头部：柔和光点 + 呼吸闪烁（周期性明暗，像星体闪烁）
+    var blink=.72+.28*Math.sin(now/260);
+    var hg=ctx.createRadialGradient(hx,hy,0,hx,hy,13*dpr);
+    hg.addColorStop(0,'rgba(255,255,255,'+(.95*blink).toFixed(3)+')');
+    hg.addColorStop(.4,'rgba(170,255,240,'+(.55*blink).toFixed(3)+')');
+    hg.addColorStop(1,'rgba(170,255,240,0)');
+    ctx.fillStyle=hg;
+    ctx.beginPath(); ctx.arc(hx,hy,13*dpr,0,Math.PI*2); ctx.fill();
+
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+
+
+
+
 </script>
 </body>
 </html>
