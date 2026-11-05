@@ -1,0 +1,2779 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时空裂缝：物理规律验证官 | 秘境电影审查局</title>
+<style>
+:root{
+  --sky:#9FE7FA; --sky-deep:#4FB8DE; --blue:#3D8FD0; --blue-deep:#2A6FA8;
+  --green:#A8C271; --green-deep:#7BA24A; --green-dark:#5C8A34;
+  --yellow:#FFDE59; --yellow-deep:#F5B731; --yellow-dark:#C88A12;
+  --cream:#FFF9E8; --paper:#F6E5D2; --ink:#35384E; --ink-soft:#4C5070;
+  --red:#E8554B; --red-deep:#B93A32; --white:#FFFFFF;
+  --shadow:5px 5px 0 rgba(53,56,78,.30);
+  --shadow-sm:3px 3px 0 rgba(53,56,78,.30);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Microsoft YaHei UI','Microsoft YaHei','PingFang SC','Hiragino Sans GB','Noto Sans SC','Source Han Sans SC',sans-serif;
+  background:var(--ink);
+  color:var(--ink);
+  overflow-x:hidden;
+  -webkit-font-smoothing:none;
+}
+.mono{font-family:'Cascadia Mono','Consolas','Courier New',monospace}
+img,video{image-rendering:pixelated;image-rendering:-moz-crisp-edges;image-rendering:crisp-edges}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:var(--ink)}
+::-webkit-scrollbar-thumb{background:var(--green);border:3px solid var(--ink)}
+
+/* ============ 共用像素组件 ============ */
+.panel{
+  background:var(--cream);border:4px solid var(--ink);
+  box-shadow:var(--shadow);padding:18px;
+}
+.panel.paper{background:var(--paper)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-weight:800;font-size:16px;letter-spacing:.5px;
+  background:var(--yellow);color:var(--ink);
+  border:4px solid var(--ink);box-shadow:0 5px 0 var(--yellow-dark), var(--shadow-sm);
+  padding:12px 22px;transition:transform .06s, box-shadow .06s;
+  text-shadow:none;
+}
+.btn:hover{filter:brightness(1.06)}
+.btn:active{transform:translateY(5px);box-shadow:0 0 0 var(--yellow-dark), 2px 2px 0 rgba(53,56,78,.3)}
+.btn.green{background:var(--green);box-shadow:0 5px 0 var(--green-dark), var(--shadow-sm)}
+.btn.green:active{box-shadow:0 0 0 var(--green-dark), 2px 2px 0 rgba(53,56,78,.3)}
+.btn.blue{background:var(--sky);box-shadow:0 5px 0 var(--blue), var(--shadow-sm)}
+.btn.blue:active{box-shadow:0 0 0 var(--blue), 2px 2px 0 rgba(53,56,78,.3)}
+.btn.red{background:var(--red);color:#fff;box-shadow:0 5px 0 var(--red-deep), var(--shadow-sm)}
+.btn.red:active{box-shadow:0 0 0 var(--red-deep), 2px 2px 0 rgba(53,56,78,.3)}
+.btn.ghost{background:var(--cream);box-shadow:0 5px 0 var(--ink-soft), var(--shadow-sm)}
+.btn.ghost:active{box-shadow:0 0 0 var(--ink-soft), 2px 2px 0 rgba(53,56,78,.3)}
+.btn.sm{font-size:13px;padding:8px 14px;border-width:3px;box-shadow:0 4px 0 var(--yellow-dark), 2px 2px 0 rgba(53,56,78,.25)}
+.btn.sm.green{box-shadow:0 4px 0 var(--green-dark), 2px 2px 0 rgba(53,56,78,.25)}
+.btn.sm.blue{box-shadow:0 4px 0 var(--blue), 2px 2px 0 rgba(53,56,78,.25)}
+.btn.sm.red{box-shadow:0 4px 0 var(--red-deep), 2px 2px 0 rgba(53,56,78,.25)}
+.btn.sm.ghost{box-shadow:0 4px 0 var(--ink-soft), 2px 2px 0 rgba(53,56,78,.25)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+.tag{
+  display:inline-block;font-size:12px;font-weight:800;padding:3px 9px;
+  border:3px solid var(--ink);background:var(--white);
+}
+.tag.green{background:var(--green)}
+.tag.yellow{background:var(--yellow)}
+.tag.red{background:var(--red);color:#fff}
+.tag.blue{background:var(--sky)}
+.tag.ink{background:var(--ink);color:var(--cream)}
+
+/* ============ 扫描线 / 屏幕质感 ============ */
+.scanlines::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:60;
+  background:repeating-linear-gradient(to bottom, rgba(0,0,0,.10) 0 2px, transparent 2px 4px);
+  mix-blend-mode:multiply;
+}
+
+/* ============ 屏幕切换 ============ */
+.screen{display:none;min-height:100vh;position:relative}
+.screen.active{display:block}
+
+/* ============ 启动页 ============ */
+#boot{
+  background:var(--sky);
+  overflow:hidden;
+}
+#boot .sky-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255,255,255,.55) 0 2px, transparent 3px),
+    linear-gradient(180deg,#BFF0FD 0%,#9FE7FA 45%,#8FDFF6 100%);
+}
+#boot .cloud{position:absolute;opacity:.9;animation:drift linear infinite}
+@keyframes drift{from{transform:translateX(-30vw)}to{transform:translateX(130vw)}}
+#boot .grass{
+  position:absolute;left:0;right:0;bottom:0;height:78px;
+  background:var(--green);border-top:6px solid var(--green-dark);
+  box-shadow:inset 0 8px 0 rgba(255,255,255,.25);
+}
+#boot .grass::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(92,138,52,.35) 22px 24px);
+}
+.boot-wrap{position:relative;z-index:10;display:flex;align-items:center;gap:38px;
+  max-width:1240px;margin:0 auto;padding:40px 32px 90px;min-height:100vh}
+.boot-left{flex:1.05}
+.boot-right{flex:.95;display:flex;flex-direction:column;align-items:center;gap:16px}
+.boot-hero{
+  border:6px solid var(--ink);box-shadow:var(--shadow);
+  width:100%;max-width:520px;display:block;background:var(--ink);
+  animation:heroFloat 4s ease-in-out infinite;
+}
+@keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.logo-line{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.logo-mark{
+  width:58px;height:58px;border:5px solid var(--ink);background:var(--yellow);
+  display:flex;align-items:center;justify-content:center;font-size:30px;
+  box-shadow:var(--shadow-sm);animation:blink 1.4s steps(1) infinite;
+}
+@keyframes blink{0%,49%{background:var(--yellow)}50%,100%{background:var(--white)}}
+.boot-eyebrow{font-size:13px;font-weight:800;letter-spacing:3px;color:var(--ink-soft)}
+#boot h1{
+  font-size:clamp(38px,5.2vw,66px);line-height:1.02;font-weight:900;
+  color:var(--white);letter-spacing:1px;
+  text-shadow:5px 5px 0 var(--ink-soft), 9px 9px 0 rgba(53,56,78,.25);
+  margin:6px 0 4px;
+}
+#boot h1 .hl{color:var(--yellow);text-shadow:5px 5px 0 var(--yellow-dark)}
+.boot-sub{font-size:18px;font-weight:800;color:var(--ink);margin-bottom:16px}
+.boot-desc{
+  background:var(--cream);border:4px solid var(--ink);box-shadow:var(--shadow-sm);
+  padding:16px 18px;font-size:15px;line-height:1.85;font-weight:600;margin-bottom:20px;
+}
+.boot-desc b{background:var(--yellow);padding:0 4px;border-bottom:3px solid var(--yellow-dark)}
+.alert-box{
+  background:var(--red);color:#fff;border:4px solid var(--ink);
+  box-shadow:var(--shadow-sm);padding:12px 16px;font-weight:800;font-size:15px;
+  line-height:1.7;margin-bottom:20px;animation:alertPulse 1.1s steps(2) infinite;
+}
+@keyframes alertPulse{0%,100%{background:var(--red)}50%{background:var(--red-deep)}}
+.name-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.name-row input{
+  font-family:inherit;font-size:16px;font-weight:800;padding:12px 14px;
+  border:4px solid var(--ink);background:var(--white);width:230px;outline:none;
+  box-shadow:var(--shadow-sm);
+}
+.name-row input:focus{background:#FFFDE8}
+.boot-foot{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:12px;font-weight:800;color:var(--ink-soft)}
+
+/* ============ 顶部状态条 ============ */
+.topbar{
+  position:sticky;top:0;z-index:50;background:var(--ink);color:var(--cream);
+  border-bottom:5px solid var(--green);
+  padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.topbar .brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:17px}
+.topbar .brand .dot{width:14px;height:14px;background:var(--green);border:3px solid var(--cream)}
+.topbar .spacer{flex:1}
+.stat{
+  display:flex;align-items:center;gap:7px;background:#262A3C;
+  border:3px solid var(--green);padding:5px 11px;font-weight:800;font-size:14px;
+}
+.stat.y{border-color:var(--yellow)}
+.stat.r{border-color:var(--red)}
+.stat .num{font-family:'Cascadia Mono','Consolas',monospace;color:var(--yellow)}
+.expbar{width:150px;height:16px;border:3px solid var(--cream);background:#262A3C;position:relative}
+.expbar > i{display:block;height:100%;background:var(--green);width:0;transition:width .4s}
+.expbar > span{position:absolute;inset:0;font-size:10px;text-align:center;line-height:10px;font-weight:800;color:#fff;text-shadow:1px 1px 0 #000}
+
+/* ============ 大厅 ============ */
+#hub{background:var(--sky);min-height:100vh}
+.hub-body{
+  max-width:1280px;margin:0 auto;padding:26px 22px 80px;position:relative;z-index:2;
+}
+.hub-hero{
+  display:flex;gap:20px;align-items:center;flex-wrap:wrap;
+  background:var(--ink);border:5px solid var(--ink);box-shadow:var(--shadow);
+  padding:18px 22px;margin-bottom:22px;
+}
+.hub-hero h2{color:var(--white);font-size:30px;font-weight:900;line-height:1.15}
+.hub-hero h2 .hl{color:var(--yellow)}
+.hub-hero p{color:#C9D2E8;font-size:14px;font-weight:700;margin-top:6px;line-height:1.6}
+.hub-hero .mascot{width:118px;height:118px;object-fit:contain;filter:drop-shadow(4px 4px 0 rgba(0,0,0,.35))}
+.hub-grid{display:grid;grid-template-columns:1.55fr .95fr;gap:22px}
+@media(max-width:960px){.hub-grid{grid-template-columns:1fr}.boot-wrap{flex-direction:column}}
+
+.path{background:var(--cream);border:5px solid var(--ink);box-shadow:var(--shadow);padding:20px;position:relative;overflow:hidden}
+.path canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.sec-title{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:900;margin-bottom:16px}
+.sec-title .cube{width:18px;height:18px;background:var(--green);border:3px solid var(--ink)}
+.sec-title .line{flex:1;height:4px;background:repeating-linear-gradient(90deg,var(--ink) 0 6px,transparent 6px 12px)}
+
+.levels{display:flex;flex-direction:column;gap:14px;position:relative;z-index:2}
+.lv{
+  display:flex;align-items:center;gap:16px;background:var(--white);
+  border:4px solid var(--ink);box-shadow:var(--shadow-sm);padding:13px 16px;
+  cursor:pointer;transition:transform .1s, background .1s;position:relative;
+}
+.lv:hover{transform:translate(3px,-3px);background:#FFFDF0}
+.lv.locked{opacity:.62;cursor:not-allowed;filter:grayscale(.5)}
+.lv.locked:hover{transform:none;background:var(--white)}
+.lv-num{
+  width:64px;height:64px;flex:none;display:flex;align-items:center;justify-content:center;
+  font-family:'Cascadia Mono','Consolas',monospace;font-size:26px;font-weight:800;
+  border:4px solid var(--ink);background:var(--green);color:var(--ink);
+}
+.lv.locked .lv-num{background:#C9CFDA}
+.lv.done .lv-num{background:var(--yellow)}
+.lv-main{flex:1;min-width:0}
+.lv-name{font-size:17px;font-weight:900;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lv-sub{font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-top:3px}
+.lv-stars{font-size:13px;color:var(--yellow-deep);letter-spacing:1px}
+.lv-state{font-size:12px;font-weight:900;padding:4px 9px;border:3px solid var(--ink);background:var(--cream);flex:none}
+.lv-state.ok{background:var(--green)}
+.lv-state.lk{background:#C9CFDA}
+
+.side-col{display:flex;flex-direction:column;gap:22px}
+.nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.navcard{
+  background:var(--white);border:4px solid var(--ink);box-shadow:var(--shadow-sm);
+  padding:14px 10px;text-align:center;cursor:pointer;transition:transform .1s,background .1s;
+}
+.navcard:hover{transform:translate(2px,-2px);background:#FFFDF0}
+.navcard .ico{font-size:32px;line-height:1.1;display:block;margin-bottom:6px}
+.navcard .t{font-size:14px;font-weight:900}
+.navcard .d{font-size:11px;font-weight:700;color:var(--ink-soft);margin-top:2px}
+
+/* ============ 关卡 ============ */
+#level{background:var(--ink);min-height:100vh}
+.level-body{max-width:1180px;margin:0 auto;padding:22px 20px 70px}
+.level-head{
+  background:var(--cream);border:5px solid var(--ink);box-shadow:var(--shadow);
+  padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.level-head .badge{
+  font-family:'Cascadia Mono','Consolas',monospace;font-size:22px;font-weight:800;
+  background:var(--green);border:4px solid var(--ink);padding:8px 14px;flex:none;
+}
+.level-head h2{font-size:26px;font-weight:900;flex:1;min-width:180px}
+.level-head .sub{font-size:13px;font-weight:700;color:var(--ink-soft)}
+.steps{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.step{
+  display:flex;align-items:center;gap:8px;background:var(--cream);
+  border:4px solid var(--ink);padding:8px 14px;font-weight:800;font-size:13.5px;
+  box-shadow:var(--shadow-sm);opacity:.6;
+}
+.step.on{opacity:1;background:var(--yellow)}
+.step.ok{opacity:1;background:var(--green)}
+.step .n{
+  width:24px;height:24px;display:flex;align-items:center;justify-content:center;
+  background:var(--ink);color:var(--cream);font-family:'Cascadia Mono',monospace;font-size:14px;font-weight:800;
+}
+.stage{display:grid;grid-template-columns:1.35fr .9fr;gap:20px;align-items:start}
+@media(max-width:900px){.stage{grid-template-columns:1fr}}
+.media-box{
+  background:var(--ink);border:5px solid var(--cream);box-shadow:var(--shadow);
+  position:relative;overflow:hidden;
+}
+.media-box .frame{position:relative;width:100%;aspect-ratio:16/10;background:#0A0D18;overflow:hidden}
+.media-box img,.media-box video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.media-box .frozen{filter:grayscale(.6) contrast(1.1)}
+.media-box .hud{
+  position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;
+  padding:8px 10px;pointer-events:none;z-index:5;
+}
+.media-box .hud span{
+  background:rgba(53,56,78,.88);color:var(--yellow);border:3px solid var(--yellow);
+  font-family:'Cascadia Mono',monospace;font-size:12px;font-weight:800;padding:3px 8px;
+}
+.media-box .pausehz{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);
+  z-index:12;font-size:64px;filter:drop-shadow(0 0 12px #000);
+  transition:transform .28s cubic-bezier(.2,1.6,.4,1);
+  pointer-events:none;
+}
+.media-box .pausehz.show{transform:translate(-50%,-50%) scale(1)}
+.mark-layer{position:absolute;z-index:10;cursor:crosshair;left:0;top:0;width:100%;height:100%}
+.mark{
+  position:absolute;border:5px solid var(--red);transform:translate(-50%,-50%);
+  animation:markIn .3s cubic-bezier(.2,1.6,.4,1);pointer-events:none;
+}
+.mark::after{
+  content:attr(data-label);position:absolute;left:-5px;top:-30px;white-space:nowrap;
+  background:var(--red);color:#fff;font-size:12px;font-weight:800;padding:2px 7px;border:3px solid var(--ink);
+}
+@keyframes markIn{from{transform:translate(-50%,-50%) scale(2.2);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+.flashfx{position:absolute;inset:0;z-index:30;pointer-events:none;opacity:0}
+.flashfx.go{animation:flash .55s steps(3)}
+@keyframes flash{0%{opacity:0}35%{opacity:1;background:rgba(232,85,75,.55)}100%{opacity:0}}
+.glitchfx{position:absolute;inset:0;z-index:31;pointer-events:none;opacity:0;background:
+  repeating-linear-gradient(90deg,rgba(255,0,80,.5) 0 3px,transparent 3px 9px)}
+.glitchfx.go{animation:glitch .45s steps(4)}
+@keyframes glitch{0%{opacity:0}30%{opacity:.7;transform:translateX(-6px)}60%{opacity:.5;transform:translateX(5px)}100%{opacity:0}}
+
+.side-stack{display:flex;flex-direction:column;gap:16px}
+.brief{background:var(--cream);border:4px solid var(--ink);box-shadow:var(--shadow-sm);padding:15px 17px}
+.brief h3{font-size:15px;font-weight:900;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.brief p{font-size:13.5px;font-weight:700;line-height:1.8}
+.brief .quote{
+  background:var(--white);border-left:8px solid var(--green);padding:10px 12px;
+  font-size:13px;font-weight:700;line-height:1.75;margin-top:8px;
+}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{
+  display:flex;gap:10px;align-items:flex-start;background:var(--white);
+  border:4px solid var(--ink);box-shadow:var(--shadow-sm);padding:12px 14px;
+  font-size:14px;font-weight:700;line-height:1.6;text-align:left;transition:transform .1s,background .1s;
+}
+.opt:hover{transform:translate(2px,-2px);background:#FFFDF0}
+.opt .k{
+  flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+  background:var(--ink);color:var(--cream);font-family:'Cascadia Mono',monospace;font-weight:800;font-size:15px;
+}
+.opt.right{background:#DFF5C8;border-color:var(--green-dark)}
+.opt.right .k{background:var(--green-deep)}
+.opt.wrong{background:#FFD9D6;border-color:var(--red-deep)}
+.opt.wrong .k{background:var(--red-deep)}
+.opt[disabled]{cursor:default}
+.opt[disabled]:hover{transform:none}
+.tips{background:#2E3350;border:4px solid var(--yellow);padding:13px 15px;color:#F2F5FF}
+.tips h4{font-size:13px;font-weight:900;color:var(--yellow);margin-bottom:7px;letter-spacing:1px}
+.tips ul{list-style:none;font-size:12.5px;font-weight:700;line-height:1.85}
+.tips li::before{content:'▸ ';color:var(--yellow)}
+
+.reveal{position:fixed;inset:0;z-index:200;background:rgba(53,56,78,.72);
+  display:none;align-items:center;justify-content:center;padding:22px}
+.reveal.show{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.reveal-card{
+  background:var(--cream);border:6px solid var(--ink);box-shadow:10px 10px 0 rgba(0,0,0,.4);
+  max-width:640px;width:100%;max-height:88vh;overflow:auto;padding:24px;
+  animation:popIn .3s cubic-bezier(.2,1.5,.4,1);text-align:center;
+}
+@keyframes popIn{from{transform:scale(.8) translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.reveal-card .big{font-size:34px;font-weight:900;margin-bottom:6px}
+.reveal-card .why{
+  background:var(--white);border:4px solid var(--ink);padding:14px 16px;text-align:left;
+  font-size:14px;font-weight:700;line-height:1.85;margin:14px 0;
+}
+.reveal-card .why b{background:var(--yellow);padding:0 4px}
+.rewardrow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.rewardchip{
+  background:var(--yellow);border:4px solid var(--ink);box-shadow:var(--shadow-sm);
+  padding:10px 14px;font-weight:900;font-size:14px;display:flex;align-items:center;gap:8px;
+  animation:chipIn .4s backwards;
+}
+@keyframes chipIn{from{transform:translateY(-20px) scale(.8);opacity:0}to{transform:none;opacity:1}}
+.scores{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:13px;font-weight:800}
+.scores div{background:var(--white);border:3px solid var(--ink);padding:5px 10px}
+
+/* ============ 图鉴 ============ */
+#codex{background:var(--sky);min-height:100vh}
+.codex-body{max-width:1240px;margin:0 auto;padding:22px 20px 80px}
+.searchbar{
+  display:flex;gap:12px;background:var(--cream);border:5px solid var(--ink);
+  box-shadow:var(--shadow);padding:14px;margin-bottom:18px;flex-wrap:wrap;align-items:center;
+}
+.searchbar input{
+  flex:1;min-width:220px;font-family:inherit;font-size:16px;font-weight:800;
+  padding:12px 14px;border:4px solid var(--ink);background:var(--white);outline:none;
+}
+.searchbar input:focus{background:#FFFDE8}
+.cats{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px}
+.cat{
+  font-size:13px;font-weight:800;padding:8px 14px;border:4px solid var(--ink);
+  background:var(--cream);box-shadow:var(--shadow-sm);cursor:pointer;
+}
+.cat.on{background:var(--green)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.card{
+  background:var(--white);border:4px solid var(--ink);box-shadow:var(--shadow-sm);
+  padding:15px 16px;cursor:pointer;transition:transform .1s;position:relative;
+}
+.card:hover{transform:translate(2px,-3px)}
+.card .catmini{
+  position:absolute;right:-4px;top:-4px;font-size:11px;font-weight:900;
+  padding:3px 9px;border:3px solid var(--ink);background:var(--yellow);
+}
+.card h3{font-size:16px;font-weight:900;margin-bottom:7px;padding-right:70px}
+.card .one{font-size:13px;font-weight:700;line-height:1.7;color:var(--ink-soft)}
+.card .open{font-size:12px;font-weight:900;color:var(--blue);margin-top:9px;display:block}
+.detail{
+  background:var(--cream);border:4px solid var(--ink);padding:18px;margin-top:10px;
+  animation:popIn .25s;grid-column:1/-1;
+}
+.detail h3{font-size:20px;font-weight:900;margin-bottom:12px}
+.detail .blk{margin-bottom:13px}
+.detail .blk .lb{
+  display:inline-block;font-size:12px;font-weight:900;padding:3px 9px;
+  border:3px solid var(--ink);margin-bottom:6px;
+}
+.detail .blk .lb.a{background:var(--sky)}
+.detail .blk .lb.b{background:var(--red);color:#fff}
+.detail .blk .lb.c{background:var(--green)}
+.detail .blk p{font-size:13.5px;font-weight:700;line-height:1.85}
+
+/* ============ Debug实验室 ============ */
+#lab{background:var(--ink);min-height:100vh}
+.lab-body{max-width:1100px;margin:0 auto;padding:22px 20px 80px}
+.lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.lab-grid{grid-template-columns:1fr}}
+.term{
+  background:#0E1220;border:5px solid var(--green);box-shadow:var(--shadow);
+  font-family:'Cascadia Mono','Consolas',monospace;color:#B7F7C8;
+}
+.term .bar{
+  background:var(--green);color:var(--ink);padding:7px 12px;font-weight:800;font-size:13px;
+  display:flex;align-items:center;gap:8px;
+}
+.term .body{padding:14px 15px;font-size:13.5px;line-height:1.9}
+.term .body .you{color:#7FD8FF}
+.term .body .ai{color:#B7F7C8}
+.term .body .warn{color:#FFB3AE}
+.wordbank{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}
+.word{
+  background:var(--cream);border:3px solid var(--ink);box-shadow:var(--shadow-sm);
+  font-size:13px;font-weight:800;padding:8px 13px;cursor:pointer;transition:transform .1s;
+}
+.word:hover{transform:translate(2px,-2px)}
+.word.picked{background:var(--green);border-color:var(--ink)}
+.promptbox{
+  background:var(--white);border:4px solid var(--ink);min-height:64px;padding:12px 14px;
+  font-size:14px;font-weight:800;line-height:1.7;
+}
+.genarea{
+  margin-top:14px;background:#0E1220;border:5px solid var(--yellow);padding:14px;
+  display:flex;gap:16px;align-items:center;
+}
+.genarea img{width:150px;border:4px solid var(--cream);background:#000}
+.genarea .txt{color:#F2F5FF;font-size:13.5px;font-weight:700;line-height:1.85}
+
+/* ============ 档案 ============ */
+#profile{background:var(--sky);min-height:100vh}
+.prof-body{max-width:1180px;margin:0 auto;padding:22px 20px 80px}
+.prof-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:20px}
+@media(max-width:900px){.prof-grid{grid-template-columns:1fr}}
+.rankcard{
+  background:var(--ink);border:5px solid var(--ink);box-shadow:var(--shadow);
+  padding:22px;text-align:center;position:relative;overflow:hidden;
+}
+.rankcard .glowring{
+  width:150px;height:150px;margin:0 auto 14px;border:6px solid var(--yellow);
+  display:flex;align-items:center;justify-content:center;background:#22263A;
+  animation:ringPulse 2s ease-in-out infinite;
+}
+@keyframes ringPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,222,89,.5)}50%{box-shadow:0 0 0 16px rgba(255,222,89,0)}}
+.rankcard .glowring img{width:112px;height:112px;object-fit:contain}
+.rankcard .rname{color:var(--yellow);font-size:26px;font-weight:900;letter-spacing:2px}
+.rankcard .rdesc{color:#C9D2E8;font-size:13px;font-weight:700;margin-top:7px;line-height:1.7}
+.rankcard .xp{color:var(--cream);font-size:13px;font-weight:800;margin-top:12px}
+.stickers{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px}
+.sticker{
+  background:var(--white);border:4px solid var(--ink);box-shadow:var(--shadow-sm);
+  padding:10px 6px;text-align:center;font-size:11.5px;font-weight:800;
+}
+.sticker .em{font-size:30px;display:block;line-height:1.2}
+.sticker.got{background:var(--yellow)}
+.sticker.no{opacity:.42;filter:grayscale(1)}
+.gacha{
+  background:var(--cream);border:5px solid var(--ink);box-shadow:var(--shadow);
+  padding:20px;text-align:center;margin-top:20px;
+}
+.machine{
+  width:190px;margin:12px auto;background:var(--sky);border:5px solid var(--ink);
+  box-shadow:var(--shadow-sm);padding:14px;
+}
+.machine .glass{
+  height:86px;background:var(--white);border:4px solid var(--ink);overflow:hidden;position:relative;
+}
+.machine .glass .ball{
+  position:absolute;width:26px;height:26px;border:3px solid var(--ink);
+  animation:ballRoll 1.6s linear infinite;
+}
+@keyframes ballRoll{from{transform:translateY(-30px) rotate(0)}to{transform:translateY(96px) rotate(360deg)}}
+.gacha-out{
+  min-height:26px;font-size:16px;font-weight:900;margin-top:10px;
+}
+.collection{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:14px}
+.coll{
+  background:var(--white);border:4px solid var(--ink);box-shadow:var(--shadow-sm);padding:12px;
+  font-size:12.5px;font-weight:800;text-align:center;
+}
+.coll .em{font-size:28px;display:block}
+.coll.no{opacity:.4;filter:grayscale(1)}
+
+/* ============ 放映厅（环节一 · 找茬大赛） ============ */
+#cinema{background:var(--ink);min-height:100vh}
+.cinema-body{max-width:1280px;margin:0 auto;padding:22px 20px 80px}
+.film-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:18px}
+.film{background:var(--cream);border:5px solid var(--ink);box-shadow:var(--shadow);padding:15px;position:relative}
+.film .no{
+  position:absolute;right:-5px;top:-5px;background:var(--yellow);border:5px solid var(--ink);
+  font-family:'Cascadia Mono','Consolas',monospace;font-size:19px;font-weight:800;padding:3px 10px;
+}
+.film h3{font-size:17px;font-weight:900;margin-bottom:4px;padding-right:56px}
+.film .meta{font-size:12px;font-weight:800;color:var(--ink-soft);margin-bottom:10px}
+.film .vp{position:relative;background:#0A0D18;border:4px solid var(--ink);aspect-ratio:16/9;overflow:hidden}
+.film .vp video{width:100%;height:100%;object-fit:contain;display:block}
+.film .vp .stat{
+  position:absolute;left:6px;top:6px;background:rgba(53,56,78,.92);border:3px solid var(--yellow);
+  color:var(--yellow);font-size:11px;font-weight:800;padding:2px 7px;
+  font-family:'Cascadia Mono','Consolas',monospace;
+}
+.film .vp .big-pause{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:56px;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.film .vp .big-pause.show{opacity:1;animation:pausePop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pausePop{from{transform:scale(2.4);opacity:0}to{transform:scale(1);opacity:1}}
+.film .q{font-size:13px;font-weight:800;margin:11px 0 9px;line-height:1.7}
+.film .chs{display:flex;flex-direction:column;gap:7px}
+.film .chs button{
+  font-family:inherit;font-size:13px;font-weight:800;text-align:left;
+  background:var(--white);border:3px solid var(--ink);box-shadow:var(--shadow-sm);
+  padding:9px 12px;transition:transform .1s;cursor:pointer;
+}
+.film .chs button:hover{transform:translate(2px,-2px)}
+.film .chs button.ok{background:#DFF5C8;border-color:var(--green-dark)}
+.film .chs button.no{background:#FFD9D6;border-color:var(--red-deep)}
+.film .chs button:disabled{cursor:default;transform:none}
+.film .verdict{
+  margin-top:10px;font-size:12.5px;font-weight:800;line-height:1.8;
+  background:var(--white);border:3px solid var(--ink);padding:9px 11px;
+}
+.bigplay{position:fixed;inset:0;z-index:220;background:rgba(10,13,24,.94);display:none;
+  flex-direction:column;align-items:center;justify-content:center;padding:22px;gap:16px}
+.bigplay.show{display:flex}
+.bigplay video{max-width:min(1200px,94vw);max-height:74vh;border:6px solid var(--cream);background:#000}
+.bigplay .bp-title{color:var(--yellow);font-size:20px;font-weight:900;letter-spacing:1px}
+
+/* ============ 教师投屏端 ============ */
+#teacher{background:#0E1220;min-height:100vh;color:var(--cream)}
+.t-body{max-width:1280px;margin:0 auto;padding:22px 20px 70px}
+.t-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:22px}
+@media(max-width:980px){.t-grid{grid-template-columns:1fr}}
+.t-screen{
+  background:var(--cream);border:6px solid var(--yellow);box-shadow:var(--shadow);
+  padding:26px;min-height:400px;color:var(--ink);
+}
+.t-screen .qlabel{font-size:14px;font-weight:900;letter-spacing:3px;color:var(--red);margin-bottom:10px}
+.t-screen h2{font-size:clamp(26px,3.4vw,44px);font-weight:900;line-height:1.25;margin-bottom:16px}
+.t-screen h2 .hl{background:var(--yellow);padding:0 6px}
+.t-screen .timebig{
+  font-family:'Cascadia Mono','Consolas',monospace;font-size:96px;font-weight:800;
+  text-align:center;color:var(--ink);line-height:1;
+}
+.t-screen .timebig.low{color:var(--red)}
+.t-screen .tlist{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+.t-screen .tlist div{
+  background:var(--white);border:4px solid var(--ink);padding:10px 14px;
+  font-size:16px;font-weight:800;display:flex;gap:10px;
+}
+.t-screen .tlist .k{color:var(--red);font-weight:900}
+.score-panel{background:var(--cream);border:5px solid var(--ink);padding:18px;color:var(--ink)}
+.teamrow{
+  display:flex;align-items:center;gap:10px;background:var(--white);
+  border:4px solid var(--ink);padding:10px 12px;margin-bottom:10px;
+}
+.teamrow .nm{flex:1;font-weight:900;font-size:15px}
+.teamrow .sc{font-family:'Cascadia Mono',monospace;font-size:22px;font-weight:800;min-width:52px;text-align:right}
+.teamrow .pm{display:flex;gap:6px}
+.teamrow .pm button{
+  width:36px;height:36px;border:3px solid var(--ink);font-size:20px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;line-height:1;
+}
+.teamrow .pm .plus{background:var(--green)}
+.teamrow .pm .minus{background:var(--red);color:#fff}
+.t-ctrl{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.t-ctrl .btn.sm{box-shadow:0 4px 0 rgba(0,0,0,.45), 2px 2px 0 rgba(0,0,0,.3)}
+
+/* ============ 全屏特效 ============ */
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:300;overflow:hidden}
+.confetti i{
+  position:absolute;top:-20px;width:12px;height:12px;border:2px solid var(--ink);
+  animation:fall linear forwards;
+}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(140%);
+  background:var(--ink);color:var(--cream);border:4px solid var(--green);
+  padding:13px 22px;font-size:15px;font-weight:800;z-index:400;box-shadow:var(--shadow);
+  transition:transform .3s cubic-bezier(.2,1.5,.4,1);max-width:88vw;text-align:center;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.hidden{display:none!important}
+.center{text-align:center}
+.mt8{margin-top:8px}.mt14{margin-top:14px}.mt20{margin-top:20px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.row.center{justify-content:center}
+.smallnote{font-size:12px;font-weight:700;color:var(--ink-soft);line-height:1.75}
+#teacher .smallnote{color:#98A2C0}
+
+/* ---------- 素材缺失 / 播放兜底 ---------- */
+.media-box .tap-play,.media-box .sound-tip{
+  position:absolute;z-index:14;border:4px solid var(--ink);cursor:pointer;
+  font-family:'Cascadia Mono','Microsoft YaHei',monospace;font-weight:800;
+  box-shadow:0 5px 0 rgba(0,0,0,.35);
+}
+.media-box .tap-play{
+  left:50%;top:50%;transform:translate(-50%,-50%);
+  background:var(--yellow);color:var(--ink);font-size:19px;padding:13px 22px;
+  animation:tipPulse 1.1s ease-in-out infinite alternate;
+}
+.media-box .sound-tip{
+  right:10px;bottom:42px;background:var(--cream);color:var(--ink);font-size:13px;padding:7px 12px;
+}
+@keyframes tipPulse{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(-50%,-50%) scale(1.07)}}
+
+/* ---------- 环境自检 ---------- */
+.diag-list{display:flex;flex-direction:column;gap:6px}
+.diag-row{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font-family:'Cascadia Mono','Microsoft YaHei',monospace;font-size:13px;font-weight:700;
+  padding:7px 10px;border:3px solid var(--ink);background:var(--white);
+}
+.diag-row .st{flex:0 0 auto;font-weight:800;color:var(--green-dark)}
+.diag-row .p{color:var(--ink-soft);font-size:12px;margin-left:auto}
+.diag-row.bad{border-color:var(--red);background:#FFECEA}
+.diag-row.bad .st{color:var(--red)}
+.diag-sum-ok{border-color:var(--green-dark)!important;background:#F2F8EA}
+</style>
+</head>
+<body>
+
+<!-- ================= 启动页 ================= -->
+<section id="boot" class="screen active scanlines">
+  <div class="sky-bg"></div>
+  <div class="grass"></div>
+  <div class="boot-wrap">
+    <div class="boot-left">
+      <div class="logo-line">
+        <div class="logo-mark">🔍</div>
+        <div>
+          <div class="boot-eyebrow">M I S T &nbsp; F I L M &nbsp; C E N S O R &nbsp; B U R E A U</div>
+          <div class="boot-eyebrow" style="color:var(--red)">秘境电影审查局 · 招录公告</div>
+        </div>
+      </div>
+      <h1>时空裂缝<br><span class="hl">物理规律验证官</span></h1>
+      <div class="boot-sub">4–9 年级 · 90 分钟 · 探知之眼特训</div>
+      <div class="alert-box">
+        ⚠ 灵枢系统警报：时空裂缝导致物理规律崩塌！<br>
+        代号 #A-021 动画片段中出现「六指琴魔」与「融化的杯子」——
+         AI 生成的画面正在骗过所有人的眼睛。紧急招募<b>找茬专员</b>。
+      </div>
+      <div class="boot-desc">
+        你的任务：在一堆 AI 生成的视频里，<b>以最快速度揪出所有违背物理常识的「幽灵 bug」</b>。<br>
+        调用你的 <b>按下暂停键观察法</b>，用红笔圈出穿帮、写下一句物理学解释，<br>
+        再在 <b>Debug 修正实验室</b> 里把 AI 重新调教一次。<br>
+        火眼金睛者，将获得「探知之眼」信物。
+      </div>
+      <div class="name-row">
+        <input id="codename" maxlength="8" placeholder="输入你的专员代号" value="火眼小将">
+        <button class="btn green" onclick="enterHub()">▶ 进入审查局</button>
+        <button class="btn blue sm" onclick="showScreen('teacher');initTeacher()">📺 教师投屏端</button>
+        <button class="btn ghost sm" onclick="runDiag()" title="检查 assets 素材是否齐全（换电脑后先点这个）">🔧 环境自检</button>
+      </div>
+      <div class="boot-foot">
+        <span>🎮 5 个由浅入深关卡</span><span>📚 30 条物理知识点图鉴</span><span>🧪 Debug 修正实验室</span><span>🏅 贴纸 / 勋章 / 扭蛋奖励</span>
+      </div>
+    </div>
+    <div class="boot-right">
+      <img class="boot-hero" src="assets/gen/cover_hero.png" alt="秘境电影审查局">
+      <div class="panel" style="width:100%;max-width:520px;padding:12px 14px">
+        <div class="smallnote">
+          <b>评审提示</b>：本页为「导入：时空裂缝警报」环节的课堂投屏封面，
+          点击「进入审查局」即进入学生端 / 教师投屏端主界面。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 大厅 ================= -->
+<section id="hub" class="screen scanlines">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>秘境电影审查局</div>
+    <div class="spacer"></div>
+    <div class="stat"><span>专员</span><span class="num" id="tb-name">火眼小将</span></div>
+    <div class="stat y"><span>🏅</span><span class="num" id="tb-sticker">0</span><span>贴纸</span></div>
+    <div class="stat r"><span>LV</span><span class="num" id="tb-lv">1</span></div>
+    <div class="stat y"><span>EXP</span><div class="expbar"><i id="tb-expbar"></i><span id="tb-exptxt">0/100</span></div></div>
+    <button class="btn sm blue" onclick="showScreen('boot')">↩ 返回封面</button>
+  </div>
+  <div class="hub-body">
+    <div class="hub-hero">
+      <img class="mascot" src="assets/gen/mascot.png" alt="审查局助手">
+      <div style="flex:1;min-width:240px">
+        <h2 id="hub-greet">审查局大厅 · 欢迎回来，<span class="hl">火眼小将</span></h2>
+        <p>选择一项任务开始。关卡按难度由浅入深：先练「人体结构」，再战「重力」「光影」「空间材质」，最后进入<b>终极拯救 BOSS 战</b>。</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="tag green" id="hub-progress">进度 0 / 5 关</div>
+        <div class="tag yellow" id="hub-rank">段位：见习审查员</div>
+      </div>
+    </div>
+
+    <div class="hub-grid">
+      <div class="path">
+        <canvas id="pathfx"></canvas>
+        <div class="sec-title"><span class="cube"></span>主线任务 · 找茬试炼<span class="line"></span></div>
+        <div class="levels" id="lv-list"></div>
+      </div>
+
+      <div class="side-col">
+        <div class="panel">
+          <div class="sec-title"><span class="cube" style="background:var(--yellow)"></span>辅助系统</div>
+          <div class="nav-grid">
+            <div class="navcard" onclick="showScreen('codex');renderCodex()">
+              <span class="ico">📚</span><div class="t">物理知识图鉴</div><div class="d">30条 · 可搜索</div>
+            </div>
+            <div class="navcard" onclick="showScreen('lab');initLab()">
+              <span class="ico">🧪</span><div class="t">Debug修正实验室</div><div class="d">调教AI重生成</div>
+            </div>
+            <div class="navcard" onclick="showScreen('profile');renderProfile()">
+              <span class="ico">🏅</span><div class="t">我的档案</div><div class="d">贴纸 · 勋章 · 扭蛋</div>
+            </div>
+            <div class="navcard" onclick="showScreen('teacher');initTeacher()">
+              <span class="ico">📺</span><div class="t">教师投屏端</div><div class="d">小组计分 · 计时</div>
+            </div>
+            <div class="navcard" style="grid-column:1/-1;background:var(--yellow)" onclick="showScreen('cinema');renderCinema()">
+              <span class="ico">🎬</span><div class="t">烂番薯大赏 · 放映厅</div><div class="d">5 段 AI 穿帮影片 · 按下暂停键抢答（对应教案环节一）</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel paper">
+          <div class="sec-title"><span class="cube" style="background:var(--red)"></span>今日口诀</div>
+          <p style="font-size:15px;font-weight:900;line-height:2;text-align:center">
+            像素不是实体，<span class="tag blue" style="font-size:13px">AI没有常识</span><br>
+            眼看 · 手查 · 心验证，<br>
+            <span class="tag yellow" style="font-size:13px">火眼金睛不吃亏！</span>
+          </p>
+          <div class="smallnote mt14">※ 口诀出自教案「升华总结：AI不是全知全能」环节，齐读两遍即可获得隐藏贴纸。</div>
+          <div class="row center mt8"><button class="btn sm green" onclick="chant()">🔊 齐读口诀</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 关卡 ================= -->
+<section id="level" class="screen">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>找茬试炼进行中</div>
+    <div class="spacer"></div>
+    <div class="stat"><span>得分</span><span class="num" id="lv-score">0</span></div>
+    <div class="stat y"><span>命中</span><span class="num" id="lv-hit">-</span></div>
+    <div class="stat r"><span>剩余机会</span><span class="num" id="lv-try">3</span></div>
+    <button class="btn sm ghost" onclick="quitLevel()">退出试炼</button>
+  </div>
+  <div class="level-body">
+    <div class="level-head">
+      <div class="badge" id="lv-no">01</div>
+      <div style="flex:1;min-width:200px">
+        <h2 id="lv-title">关卡标题</h2>
+        <div class="sub" id="lv-sub">难度</div>
+      </div>
+      <div class="tag red" id="lv-type">穿帮类型</div>
+    </div>
+    <div class="steps">
+      <div class="step" id="st1"><span class="n">1</span>观察画面</div>
+      <div class="step" id="st2"><span class="n">2</span>按下暂停键</div>
+      <div class="step" id="st3"><span class="n">3</span>红笔圈出穿帮</div>
+      <div class="step" id="st4"><span class="n">4</span>说出物理原因</div>
+    </div>
+
+    <div class="stage">
+      <div class="media-box scanlines" id="media-box">
+        <div class="frame" id="frame"></div>
+        <div class="mark-layer" id="markLayer"></div>
+        <div class="flashfx" id="flash"></div>
+        <div class="glitchfx" id="glitch"></div>
+        <div class="pausehz" id="pausehz">⏸</div>
+      </div>
+
+      <div class="side-stack">
+        <div class="brief">
+          <h3><span class="tag ink">审查局档案</span> 任务简报</h3>
+          <p id="lv-brief">简报内容</p>
+          <div class="quote" id="lv-quote">「按下暂停键，盯住画面最不自然的那个地方。」</div>
+        </div>
+        <div class="panel" id="action-panel">
+          <div id="act-observe">
+            <div class="sec-title" style="font-size:16px"><span class="cube"></span>第 1–2 步 · 观察与暂停</div>
+            <p class="smallnote">先看完片段，然后按下 <b>暂停键</b> 冻结画面——这是本课的「按下暂停键观察法」。</p>
+            <div class="row center mt14">
+              <button class="btn blue" id="btn-pause" onclick="doPause()">⏸ 按下暂停键</button>
+            </div>
+          </div>
+          <div id="act-mark" class="hidden">
+            <div class="sec-title" style="font-size:16px"><span class="cube" style="background:var(--red)"></span>第 3 步 · 红笔圈出穿帮</div>
+            <p class="smallnote">在左侧画面上<b>点击</b>你认为穿帮的位置，红笔会自动圈注。</p>
+            <div class="row center mt14">
+              <button class="btn sm ghost" onclick="useHint()">💡 用一次排查锦囊（-10分）</button>
+              <button class="btn sm blue" onclick="replayClip()">↺ 重看片段</button>
+            </div>
+          </div>
+          <div id="act-quiz" class="hidden">
+            <div class="sec-title" style="font-size:16px"><span class="cube" style="background:var(--yellow)"></span>第 4 步 · 说出物理原因</div>
+            <p class="smallnote">选出一句正确的物理学解释——这将被写在你的「穿帮镜头曝光板」上。</p>
+            <div class="opts mt14" id="quiz-opts"></div>
+          </div>
+        </div>
+        <div class="tips">
+          <h4>四向排查锦囊</h4>
+          <ul>
+            <li>放慢看：逐帧回看，别被整体画面骗了</li>
+            <li>盯住手：指甲、指节、手指根数、反关节</li>
+            <li>看影子：光源在哪边？影子该往哪边倒？</li>
+            <li>查空间：物体有没有互相穿透、有没有悬空</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 图鉴 ================= -->
+<section id="codex" class="screen scanlines">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>物理知识图鉴</div>
+    <div class="spacer"></div>
+    <div class="stat y"><span>共</span><span class="num" id="cd-count">0</span><span>条</span></div>
+    <button class="btn sm ghost" onclick="showScreen('hub');renderHub()">↩ 返回大厅</button>
+  </div>
+  <div class="codex-body">
+    <div class="searchbar">
+      <input id="cd-search" placeholder="🔍 搜索知识点，例如：手指、影子、重力、穿模、浮力、折射…" oninput="renderCodex()">
+      <button class="btn sm blue" onclick="document.getElementById('cd-search').value='';renderCodex()">清空</button>
+    </div>
+    <div class="cats" id="cd-cats"></div>
+    <div class="cards" id="cd-cards"></div>
+  </div>
+</section>
+
+<!-- ================= Debug实验室 ================= -->
+<section id="lab" class="screen">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>Debug 修正实验室</div>
+    <div class="spacer"></div>
+    <div class="stat y"><span>修正成功</span><span class="num" id="lab-ok">0</span><span>/ 3</span></div>
+    <button class="btn sm ghost" onclick="showScreen('hub');renderHub()">↩ 返回大厅</button>
+  </div>
+  <div class="lab-body">
+    <div class="level-head">
+      <div class="badge" style="background:var(--yellow)">DBG</div>
+      <div style="flex:1;min-width:200px">
+        <h2>终极拯救 · 把 AI 重新调教一次</h2>
+        <div class="sub">对应教案「环节二 · 终极拯救」：在提示词里追加修正词，重新生成并对比验证</div>
+      </div>
+    </div>
+    <div class="lab-grid">
+      <div class="term">
+        <div class="bar">▍原始提示词（AI 生成失败）</div>
+        <div class="body" id="lab-orig"></div>
+      </div>
+      <div class="panel">
+        <div class="sec-title" style="font-size:16px"><span class="cube"></span>点选修正词补进提示词</div>
+        <div class="wordbank" id="lab-words"></div>
+        <div class="sec-title" style="font-size:15px;margin-top:14px"><span class="cube" style="background:var(--yellow)"></span>你写出的新提示词</div>
+        <div class="promptbox" id="lab-prompt">（点击上面的修正词，把它们加进来…）</div>
+        <div class="row mt14">
+          <button class="btn green" onclick="runGen()">⚙ 重新生成</button>
+          <button class="btn sm ghost" onclick="initLab()">↺ 清空重来</button>
+        </div>
+      </div>
+    </div>
+    <div class="genarea" id="lab-gen" style="display:none">
+      <img id="lab-img" src="assets/gen/goof_hand.png" alt="重新生成结果">
+      <div class="txt" id="lab-result"></div>
+    </div>
+    <div class="panel mt20">
+      <div class="sec-title" style="font-size:16px"><span class="cube" style="background:var(--red)"></span>为什么「修正词」有用？</div>
+      <p class="smallnote" style="font-size:14px">
+        AI 只认识 <b>2D 像素图案</b>，不认识 3D 实体；重力、材质、人体结构对它只是<b>概率</b>。
+        当你把「完美的手部结构」「符合物理重力」写进提示词，等于把人类的物理常识<b>手动补进它的概率表</b>。
+        但请注意——<b>AI 可以被调教，仍需要人来把关</b>：生成之后，还是要用眼睛复查一遍。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 档案 ================= -->
+<section id="profile" class="screen scanlines">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>我的专员档案</div>
+    <div class="spacer"></div>
+    <button class="btn sm ghost" onclick="showScreen('hub');renderHub()">↩ 返回大厅</button>
+  </div>
+  <div class="prof-body">
+    <div class="prof-grid">
+      <div>
+        <div class="rankcard">
+          <div class="glowring"><img src="assets/gen/badge_eye.png" alt="探知之眼"></div>
+          <div class="rname" id="pf-rank">见习审查员</div>
+          <div class="rdesc" id="pf-rdesc">刚刚戴上放大镜的新人，先学会「按下暂停键」。</div>
+          <div class="xp" id="pf-xp">经验值 0 / 100</div>
+          <div class="expbar mt8" style="width:100%;border-color:var(--cream)"><i id="pf-expbar"></i></div>
+        </div>
+        <div class="panel mt20">
+          <div class="sec-title" style="font-size:16px"><span class="cube"></span>火眼金睛贴纸墙</div>
+          <div class="stickers" id="pf-stickers"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="sec-title" style="font-size:16px"><span class="cube" style="background:var(--yellow)"></span>秘境扭蛋机（消耗 3 张贴纸）</div>
+          <div class="gacha">
+            <div class="machine">
+              <div class="glass">
+                <div class="ball" style="background:var(--yellow);left:14px;animation-delay:0s"></div>
+                <div class="ball" style="background:var(--green);left:60px;animation-delay:.4s"></div>
+                <div class="ball" style="background:var(--sky);left:106px;animation-delay:.8s"></div>
+                <div class="ball" style="background:var(--red);left:152px;animation-delay:1.2s"></div>
+              </div>
+              <div class="mono mt8" style="font-size:12px;font-weight:800">LUCK · MACHINE</div>
+            </div>
+            <button class="btn red" onclick="playGacha()">🎰 投入贴纸 · 抽一次</button>
+            <div class="gacha-out" id="gacha-out">— 还未抽奖 —</div>
+            <div class="smallnote" id="gacha-cost" style="text-align:center;margin-top:10px">当前贴纸 <b>0</b> / 需要 3 张</div>
+            <div class="smallnote" style="margin-top:8px;text-align:left">
+              📌 贴纸怎么来：主线关卡<b>每次通关 +1 张</b>（重复挑战也算）· 放映厅每揪出一段穿帮 +1 张 · 齐读口诀 +1 张。
+            </div>
+          </div>
+        </div>
+        <div class="panel mt20">
+          <div class="sec-title" style="font-size:16px"><span class="cube" style="background:var(--sky)"></span>秘境道具收藏册</div>
+          <div class="collection" id="pf-coll"></div>
+        </div>
+        <div class="panel paper mt20">
+          <div class="sec-title" style="font-size:16px"><span class="cube" style="background:var(--red)"></span>已解锁勋章</div>
+          <div class="stickers" id="pf-badges"></div>
+        </div>
+        <div class="panel mt20">
+          <div class="sec-title" style="font-size:16px"><span class="cube" style="background:var(--green)"></span>档案迁移（换电脑用）</div>
+          <div class="smallnote">
+            进度存在<b>这台电脑的浏览器</b>里，换电脑不会自动带过去。
+            点「导出档案码」复制下面框里的那串字，在新电脑上粘贴后点「导入档案码」，贴纸、勋章、图纸进度就都回来了。
+          </div>
+          <textarea id="pf-code" spellcheck="false" placeholder="把档案码粘贴到这里，然后点下面的「导入档案码」" style="width:100%;height:64px;margin-top:10px;padding:10px;border:3px solid var(--ink);background:#FFFDF6;font-family:'Cascadia Mono',Consolas,monospace;font-size:11px;line-height:1.5;resize:vertical;color:var(--ink);box-sizing:border-box"></textarea>
+          <div class="rewardrow" style="margin-top:10px">
+            <button class="btn blue sm" onclick="exportSave()">📋 导出档案码</button>
+            <button class="btn green sm" onclick="importSave()">📥 导入档案码</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 放映厅（环节一 · 找茬大赛） ================= -->
+<section id="cinema" class="screen scanlines">
+  <div class="topbar">
+    <div class="brand"><span class="dot" style="background:var(--yellow)"></span>烂番薯大赏 · 放映厅</div>
+    <div class="spacer"></div>
+    <div class="stat y"><span>已揪出</span><span class="num" id="ci-done">0</span><span>/ 5 段</span></div>
+    <div class="stat"><span>EXP</span><span class="num" id="ci-exp">0</span></div>
+    <button class="btn sm ghost" onclick="showScreen('hub');renderHub()">↩ 返回大厅</button>
+  </div>
+  <div class="cinema-body">
+    <div class="level-head">
+      <div class="badge" style="background:var(--yellow)">FILM</div>
+      <div style="flex:1;min-width:220px">
+        <h2>AI 视频烂番薯大赏 · 找茬大赛</h2>
+        <div class="sub">对应教案「环节一（20分钟）」：大屏幕播放 AI 生成典型穿帮影片，谁第一个喊「停」并准确指出穿帮，谁就获得火眼金睛贴纸</div>
+      </div>
+      <div class="tag red">按下暂停键观察法</div>
+    </div>
+    <div class="panel paper" style="margin-bottom:18px">
+      <div class="smallnote" style="font-size:14px">
+        <b>课堂玩法</b>：① 老师点「▶ 全屏投屏播放」把影片投到大屏；② 学生盯屏找茬，谁先发现就喊「停」；
+        ③ 老师点「⏸ 按下暂停键」冻结画面；④ 学生说出穿帮类型，答对得贴纸。
+        <br><b>提示</b>：AI 缺乏三维空间理解与真实世界物理常识——它只认识 2D 的像素图案，不认识 3D 的实体。
+      </div>
+    </div>
+    <div class="film-grid" id="filmGrid"></div>
+  </div>
+</section>
+<div class="bigplay" id="bigplay">
+  <div class="bp-title" id="bpTitle">全屏投屏播放</div>
+  <video id="bpVideo" controls playsinline></video>
+  <div class="row center">
+    <button class="btn red" onclick="bpPause()">⏸ 按下暂停键（全屏冻结）</button>
+    <button class="btn green" onclick="closeBigPlay()">✕ 关闭投屏</button>
+  </div>
+  <div class="smallnote" style="color:#C9D2E8">按 <b>空格键</b> 也可以一键暂停 —— 这就是「按下暂停键观察法」。</div>
+</div>
+
+<!-- ================= 环境自检（素材完整性） ================= -->
+<section id="diag" class="screen">
+  <div class="topbar" style="border-bottom-color:var(--green)">
+    <div class="brand"><span class="dot" style="background:var(--green)"></span>环境自检 · 素材完整性检查</div>
+    <div class="spacer"></div>
+    <button class="btn sm ghost" onclick="runDiag()">↻ 重新检测</button>
+    <button class="btn sm ghost" onclick="showScreen('boot')">↩ 返回</button>
+  </div>
+  <div style="padding:18px 22px;max-width:1100px;margin:0 auto">
+    <div class="panel" style="padding:16px 18px">
+      <h3><span class="cube"></span>换电脑前，先花 10 秒跑一遍这个</h3>
+      <p class="smallnote">
+        《时空裂缝》是一个<b>纯本地网页</b>：不联网、不装任何程序、<b>不需要 Python</b>，
+        也不需要启动本地服务器。它只依赖和 HTML 放在一起的 <b>assets 文件夹</b>（8 张插画 + 5 段视频）。<br>
+        下面每一项都是 <b>OK</b>，就说明换任何电脑、任何浏览器都能正常播放。
+      </p>
+    </div>
+    <div class="panel" style="padding:16px 18px;margin-top:12px">
+      <h3><span class="cube"></span>检测结果</h3>
+      <div id="diag-list" class="diag-list"><div class="smallnote">正在检测……</div></div>
+      <div id="diag-sum" style="margin-top:12px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 教师投屏端 ================= -->
+<section id="teacher" class="screen">
+  <div class="topbar" style="border-bottom-color:var(--yellow)">
+    <div class="brand"><span class="dot" style="background:var(--yellow)"></span>教师投屏端 · 秘境电影审查局</div>
+    <div class="spacer"></div>
+    <div class="stat y"><span>环节</span><span class="num" id="t-stage">导入</span></div>
+    <button class="btn sm ghost" onclick="showScreen('hub');renderHub()">↩ 返回大厅</button>
+  </div>
+  <div class="t-body">
+    <div class="t-grid">
+      <div>
+        <div class="t-screen" id="t-screen">
+          <div class="qlabel" id="t-qlabel">▍导入 · 时空裂缝警报</div>
+          <h2 id="t-qtext">看科幻大片时，你找过穿帮镜头吗？<br><span class="hl">为什么这些镜头让人出戏？</span></h2>
+          <div class="timebig" id="t-time">90</div>
+          <div class="tlist" id="t-tlist">
+            <div><span class="k">1</span><span>重播第 21 课自己的动画片段</span></div>
+            <div><span class="k">2</span><span>灵枢系统警报：物理规律崩塌</span></div>
+            <div><span class="k">3</span><span>发布挑战：揪出所有违背物理常识的「幽灵 bug」</span></div>
+          </div>
+        </div>
+        <div class="panel mt20" style="background:#1A1F33;border-color:var(--yellow)">
+          <div class="row" style="justify-content:space-between">
+            <div class="sec-title" style="font-size:16px;color:var(--cream);margin:0"><span class="cube" style="background:var(--yellow)"></span>投屏控制</div>
+            <div class="t-ctrl" style="margin:0">
+              <button class="btn sm yellow" onclick="tPrev()">◀ 上一环节</button>
+              <button class="btn sm green" onclick="tNext()">下一环节 ▶</button>
+              <button class="btn sm blue" onclick="tTimer(90)">⏱ 90秒</button>
+              <button class="btn sm blue" onclick="tTimer(60)">⏱ 60秒</button>
+              <button class="btn sm red" onclick="tStopTimer()">⏹ 停止计时</button>
+              <button class="btn sm ghost" onclick="tReveal()">👁 揭晓答案</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="score-panel">
+          <div class="sec-title" style="font-size:17px"><span class="cube" style="background:var(--green)"></span>找茬大赛 · 小组计分板</div>
+          <div id="t-teams"></div>
+          <div class="row mt14">
+            <button class="btn sm green" onclick="tAddTeam()">＋ 增加小组</button>
+            <button class="btn sm ghost" onclick="tResetTeams()">↺ 清零重来</button>
+          </div>
+          <div class="smallnote mt14">※ 对应教案「环节一 · 找茬大赛」：第一个喊「停」并准确指出穿帮的小组 +2 分，补充遗漏穿帮点 +1 分。</div>
+        </div>
+        <div class="panel mt20 paper">
+          <div class="sec-title" style="font-size:16px"><span class="cube" style="background:var(--red)"></span>环节时长对照（教案原表）</div>
+          <div class="smallnote" style="font-size:13.5px">
+            导入 10 分钟 → 烂番薯大赏找茬大赛 20 分钟 → 猎物狩猎·穿帮曝光板 30 分钟 → 探知之眼激活·验收发布会 15 分钟 → 升华总结 15 分钟
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 通用弹层 ================= -->
+<div class="reveal" id="reveal"><div class="reveal-card" id="revealCard"></div></div>
+<div class="confetti" id="confetti"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   0. 基础工具
+   ========================================================= */
+const $ = (id) => document.getElementById(id);
+const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+const pick = (arr) => arr[Math.floor(Math.random()*arr.length)];
+
+/* --- 音效（WebAudio 合成，无外部文件） --- */
+let AC = null;
+function ac(){
+  try{
+    if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)();
+    // 换一台新电脑首次打开时，AudioContext 会停在 suspended 状态，
+    // 必须在用户手势里 resume() 才会有声音。
+    if(AC && AC.state === 'suspended') AC.resume();
+  }catch(e){ return null; }
+  return AC;
+}
+function beep(freq, dur, type, vol){
+  try{
+    const c = ac(), o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'square'; o.frequency.value = freq;
+    g.gain.value = vol == null ? 0.07 : vol;
+    o.connect(g); g.connect(c.destination);
+    const t = c.currentTime;
+    o.start(t); g.gain.exponentialRampToValueAtTime(0.0001, t + (dur||0.09));
+    o.stop(t + (dur||0.09) + 0.02);
+  }catch(e){}
+}
+const SFX = {
+  click:()=>beep(660,.06,'square',.05),
+  hover:()=>beep(880,.03,'square',.025),
+  pause:()=>{beep(300,.09,'square',.07);setTimeout(()=>beep(220,.12,'square',.07),80);},
+  hit :()=>{beep(880,.07,'square',.08);setTimeout(()=>beep(1320,.12,'square',.07),70);},
+  miss:()=>{beep(180,.16,'sawtooth',.07);},
+  right:()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.12,'square',.07), i*80));},
+  wrong:()=>{[400,300,200].forEach((f,i)=>setTimeout(()=>beep(f,.14,'sawtooth',.07), i*90));},
+  reward:()=>{[784,988,1175,1568].forEach((f,i)=>setTimeout(()=>beep(f,.14,'square',.08), i*90));},
+  win:()=>{[523,659,784,1047,1319,1568].forEach((f,i)=>setTimeout(()=>beep(f,.18,'square',.08), i*110));},
+  tick:()=>beep(1100,.04,'square',.05),
+  gacha:()=>{[600,700,800,900,1000].forEach((f,i)=>setTimeout(()=>beep(f,.06,'square',.06), i*60));},
+};
+
+function toast(msg, ms){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm = setTimeout(()=>t.classList.remove('show'), ms||2200);
+}
+function confetti(n){
+  const box = $('confetti');
+  const cols = ['#FFDE59','#A8C271','#9FE7FA','#E8554B','#FFFFFF','#FFE491'];
+  for(let i=0;i<(n||60);i++){
+    const el = document.createElement('i');
+    el.style.left = Math.random()*100+'vw';
+    el.style.background = pick(cols);
+    el.style.animationDuration = (1.4+Math.random()*1.6)+'s';
+    el.style.animationDelay = (Math.random()*.5)+'s';
+    el.style.width = el.style.height = (8+Math.random()*10)+'px';
+    box.appendChild(el);
+    setTimeout(()=>el.remove(), 3600);
+  }
+}
+
+/* =========================================================
+   1. 游戏状态
+   ========================================================= */
+const RANKS = [
+  {lv:1, name:'见习审查员', min:0,   desc:'刚刚戴上放大镜的新人，先学会「按下暂停键」。'},
+  {lv:2, name:'初级找茬专员', min:120, desc:'已经能在画面里看到「不太对劲」的地方了。'},
+  {lv:3, name:'正式审查员', min:280, desc:'能准确说出穿帮类型，还会写一句物理学解释。'},
+  {lv:4, name:'高级验证官', min:480, desc:'看得出手部、光影、重力、穿模四大方向的破绽。'},
+  {lv:5, name:'首席验证官', min:700, desc:'能逆向推理「AI 为什么错」，并写出有效修正词。'},
+  {lv:6, name:'探知之眼',   min:960, desc:'AI 时代不可替代的火眼金睛——审查局档案里已记下你的名字。'},
+];
+
+const STICKER_DEFS = [
+  {id:'s_hand',  em:'✋', name:'六指琴魔·火眼'},
+  {id:'s_water', em:'🌊', name:'倒流瀑布·火眼'},
+  {id:'s_shadow',em:'🌓', name:'影子叛变·火眼'},
+  {id:'s_clip',  em:'🧱', name:'穿墙怪·火眼'},
+  {id:'s_boss',  em:'👑', name:'终极拯救·火眼'},
+  {id:'s_film',  em:'🎬', name:'放映厅·揪片快手'},
+  {id:'s_chant', em:'📣', name:'口诀齐读·隐藏'},
+];
+
+const GACHA_POOL = [
+  {id:'g_lens',  em:'🔎', name:'像素放大镜', desc:'看得更快：下一关提示免费。'},
+  {id:'g_chip',  em:'💾', name:'2D像素芯片', desc:'AI 的内核：只认像素，不认实体。'},
+  {id:'g_apple', em:'🍎', name:'悬浮苹果', desc:'重力失效的证物，编号 #A-002。'},
+  {id:'g_cup',   em:'☕', name:'融化的杯子', desc:'材质常识崩塌现场。'},
+  {id:'g_eye',   em:'👁', name:'探知之眼碎片刻', desc:'每抽到 1 片累积 1 枚，集齐 5 片自动解锁隐藏信物。'},
+  {id:'g_six',   em:'🖐', name:'第六根手指', desc:'AI 概率堆叠的产物。'},
+  {id:'g_light', em:'🔦', name:'定向光源', desc:'影子方向测试器。'},
+  {id:'g_wall',  em:'🚪', name:'穿模砖块', desc:'三维空间理解缺失的证据。'},
+  {id:'g_grace', em:'🎬', name:'审查局工牌', desc:'秘境电影审查局 · 正式专员。'},
+  {id:'g_star',  em:'⭐', name:'灵枢碎片', desc:'据说能修复时空裂缝。'},
+];
+
+const state = {
+  name:'火眼小将',
+  exp:0,
+  stickers:{},        // id -> count
+  badges:{},          // id -> true
+  coll:{},            // gacha id -> true
+  levels:{},          // idx -> {done, best}
+  labDone:{},
+  chantDone:false,
+  shards:0,           // 探知之眼碎片数（每抽到 1 片 g_eye 累积）
+};
+const SAVE_KEY = 'mingjing_physics_verifier_v1';
+
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){} }
+function load(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){ const o = JSON.parse(raw); Object.assign(state, o); normalizeState(); }
+  }catch(e){}
+}
+/* 兼容旧存档 / 手工导入的档案码：补齐可能缺失的字段，避免老存档报错 */
+function normalizeState(){
+  state.stickers = state.stickers || {};
+  state.badges   = state.badges   || {};
+  state.coll     = state.coll     || {};
+  state.levels   = state.levels   || {};
+  state.labDone  = state.labDone  || {};
+  state.films    = state.films    || {};
+  state.shards   = state.shards   || 0;
+  if(typeof state.exp !== 'number' || isNaN(state.exp)) state.exp = 0;
+}
+/* ---------- 档案迁移（换电脑用） ----------
+   浏览器进度只存在本机，换电脑不会跟着走。这里把 state 序列化成一串
+   可复制的「档案码」，在新电脑上粘贴即可恢复。中文用 TextEncoder 转
+   字节后再 btoa，避免 btoa 只吃 Latin-1 导致中文乱码。 */
+function b64encode(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for(let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function b64decode(b64){
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function exportSave(){
+  try{
+    const code = b64encode(JSON.stringify(state));
+    const box = $('pf-code');
+    box.value = code; box.focus(); box.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(code).catch(()=>{});
+    }
+    toast('📋 档案码已复制（' + code.length + ' 个字符）。到新电脑粘贴进同一个框，点「导入档案码」即可。', 5600);
+  }catch(e){
+    toast('导出失败：' + e.message, 3200);
+  }
+}
+function importSave(){
+  const box = $('pf-code');
+  const raw = (box.value || '').trim();
+  if(!raw){ toast('请先把档案码粘贴到上面的框里。', 3200); return; }
+  try{
+    let txt = raw;
+    // 优先按「档案码」解码；失败或本来就是 JSON，就按原文解析
+    if(raw.charAt(0) !== '{'){ try{ txt = b64decode(raw); }catch(e){} }
+    const o = JSON.parse(txt);
+    if(!o || typeof o !== 'object') throw new Error('格式不对');
+    Object.assign(state, o);
+    normalizeState();
+    save(); refreshTopbar(); renderProfile(); renderHub();
+    SFX.reward(); confetti(60);
+    toast('📥 导入成功：' + state.exp + ' 经验 · ' + stickerCount() + ' 张贴纸 · ' +
+          Object.values(state.levels).filter(v=>v&&v.done).length + ' 关已通关。', 5000);
+  }catch(e){
+    toast('❌ 导入失败：这串内容不是有效的档案码（' + e.message + '）。', 4200);
+  }
+}
+function expToNext(){
+  const cur = currentRank();
+  const nxt = RANKS.find(r=>r.lv === cur.lv + 1);
+  return nxt ? nxt.min : 1000;
+}
+function currentRank(){
+  let r = RANKS[0];
+  for(const x of RANKS){ if(state.exp >= x.min) r = x; }
+  return r;
+}
+function stickerCount(){
+  return Object.values(state.stickers).reduce((a,b)=>a+b,0);
+}
+function refreshTopbar(){
+  $('tb-name').textContent = state.name;
+  $('tb-sticker').textContent = stickerCount();
+  const r = currentRank();
+  $('tb-lv').textContent = r.lv;
+  const base = r.min, next = expToNext();
+  const pct = clamp((state.exp - base) / Math.max(1,(next - base)) * 100, 0, 100);
+  $('tb-expbar').style.width = pct + '%';
+  $('tb-exptxt').textContent = state.exp + '/' + next;
+}
+
+/* =========================================================
+   2. 屏幕路由
+   ========================================================= */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = $(id); if(el) el.classList.add('active');
+  window.scrollTo({top:0, behavior:'instant'});
+  if(id === 'hub') refreshTopbar();
+}
+
+/* =========================================================
+   3. 图鉴数据（30 条物理知识点）
+   ========================================================= */
+const CATS = ['力学·运动','力学·流体','光学·光影','空间·材质','人体结构','声电磁·能量'];
+
+const CODEX = [
+/* ---- 力学·运动 ---- */
+{cat:'力学·运动',name:'重力的方向',one:'一切物体都受到竖直向下的重力。',
+ principle:'地球上所有物体都被地球吸引，这个力叫重力，方向<b>竖直向下</b>。所以苹果会落地、跳起的人会落回地面、水滴会往下流。',
+ aiFail:'AI 只知道「这个位置放个苹果画面更好看」，它没有给苹果一个向下的加速度。于是苹果漂在半空、人物悬停不掉——重力在它眼里不存在。',
+ verify:'看物体有没有「落点」：离地的东西最终有没有落地？有没有东西莫名其妙悬着？',
+ lv:'第 2 关 · 倒流瀑布 / 悬浮苹果'},
+{cat:'力学·运动',name:'自由落体与质量无关',one:'忽略空气阻力时，轻重物体下落一样快。',
+ principle:'伽利略的结论：在真空中，一片羽毛和一个铁球同时落地。落地快慢由<b>加速度</b>决定，与质量无关。',
+ aiFail:'AI 常见错误是让「重的东西先落地、轻的东西慢慢飘」——这是它在模仿日常直觉，而不是物理规律。',
+ verify:'同一高度同时放手的两个物体，谁先落地？',
+ lv:'第 2 关 · 悬浮苹果'},
+{cat:'力学·运动',name:'惯性',one:'物体总想保持原来的运动状态。',
+ principle:'一切物体都有<b>惯性</b>：原来静止的想继续静止，原来运动的想继续匀速直线运动。急刹车时人前倾，就是惯性。',
+ aiFail:'AI 常让角色「瞬间静止」「瞬间转向」「瞬间加速」，忽略加速与减速都需要时间。',
+ verify:'物体的运动状态有没有「零时间切换」？',
+ lv:'第 2 关 · 悬浮苹果'},
+{cat:'力学·运动',name:'摩擦力',one:'接触面越粗糙、压力越大，摩擦力越大。',
+ principle:'两个物体接触并相对运动（或想运动）时，接触面会产生阻碍相对运动的<b>摩擦力</b>。汽车能刹车、鞋底能防滑，都靠它。',
+ aiFail:'AI 常画出「汽车撞树车身一点不掉漆」「在冰面上跑步却像在柏油路上」，忽略了摩擦带来的损毁与打滑。',
+ verify:'碰撞后有没有变形？在光滑面上还跑得那么稳吗？',
+ lv:'第 5 关 · 终极拯救'},
+{cat:'力学·运动',name:'弹力与形变',one:'有力的作用就会有形变，弹簧伸长量与拉力成正比。',
+ principle:'胡克定律：在弹性限度内，弹簧的伸长量与所受拉力成<b>正比</b>。形变越大，弹力越大。',
+ aiFail:'AI 画的弹簧常常「拉长却不形变」「压扁了也不反弹」，因为它在画「弹簧的图案」而不是在解受力方程。',
+ verify:'看到弹簧、蹦床、弓弦时，问一句：它形变了吗？恢复了吗？',
+ lv:'第 4 关 · 空间与材质'},
+{cat:'力学·运动',name:'作用力与反作用力',one:'你推墙，墙也在推你，大小相等、方向相反。',
+ principle:'牛顿第三定律：两个物体间的作用力与反作用力总是<b>大小相等、方向相反、作用在同一直线上</b>，分别作用在两个物体上。',
+ aiFail:'AI 常画出「打人者纹丝不动、被打者飞出很远」，只顾画面张力，不管力的成对出现。',
+ verify:'发生碰撞时，两边是不是都受力了？',
+ lv:'第 5 关 · 终极拯救'},
+/* ---- 力学·流体 ---- */
+{cat:'力学·流体',name:'液体总往低处流',one:'在重力作用下，水由高处流向低处。',
+ principle:'水是流体，会沿着重力方向流动：从高处流向低处，最终形成水平液面。抽水需要水泵做功，不会自己往高处跑。',
+ aiFail:'AI 把「瀑布」当成一个视觉符号来画，只要画面有瀑布感它就满意了，于是出现了<b>水往高处流的倒流瀑布</b>。',
+ verify:'看流向：水、沙、珠子在往上走还是往下走？',
+ lv:'第 2 关 · 倒流瀑布'},
+{cat:'力学·流体',name:'浮力与阿基米德原理',one:'浸在液体里的物体受到向上的浮力，大小等于它排开液体所受的重力。',
+ principle:'阿基米德原理 F浮 = ρ液·g·V排。物体密度小于液体密度就上浮，大于就下沉。所以木头浮、铁块沉、船能载重。',
+ aiFail:'AI 常画「石头漂在水面」「大船沉在池底」，因为它把「漂浮感」和「物体大小」错配了。',
+ verify:'这个物体在现实里会浮还是会沉？',
+ lv:'第 5 关 · 终极拯救'},
+{cat:'力学·流体',name:'大气压强',one:'我们身边的大气压大约能托起 10 米高的水柱。',
+ principle:'大气有重量，会产生压强（约 1.0×10⁵ Pa）。吸管喝饮料、吸盘挂钩、马德堡半球，都是大气压在工作。',
+ aiFail:'AI 画吸管时会漏画「液面上升」，因为压强差看不见，它容易只画动作不画结果。',
+ verify:'抽走空气之后，液面有没有变化？',
+ lv:'第 2 关 · 倒流瀑布'},
+/* ---- 光学·光影 ---- */
+{cat:'光学·光影',name:'影子的方向',one:'影子永远出现在光源的反方向。',
+ principle:'光沿直线传播，被不透明物体挡住的地方就形成<b>影子</b>。太阳在左边，影子就必须在右边——这是判断穿帮最快的一招。',
+ aiFail:'AI 把「光影氛围」当成风格滤镜来用：它让画面更戏剧化，却忘了影子方向和光源方向必须自洽。',
+ verify:'先找光源，再看影子——两者的连线有没有矛盾？',
+ lv:'第 3 关 · 影子叛变'},
+{cat:'光学·光影',name:'影子的长短',one:'光源越低，影子越长；光源越高，影子越短。',
+ principle:'光线与地面的夹角越小，影子被拉得越长。早晨傍晚影子长，正午影子最短。',
+ aiFail:'AI 常画出「正午太阳当头、影子却拖得老长」的矛盾画面。',
+ verify:'太阳的高度角和影子的长度是否匹配？',
+ lv:'第 3 关 · 影子叛变'},
+{cat:'光学·光影',name:'光的直线传播',one:'光在同种均匀介质中沿直线传播。',
+ principle:'影子、日食月食、小孔成像，都由光的<b>直线传播</b>决定。',
+ aiFail:'AI 常画出「影子与物体的脚不相接」「影子凭空飘着」，破坏直线传播的几何关系。',
+ verify:'影子的根部是不是连着物体的底面？',
+ lv:'第 3 关 · 影子叛变'},
+{cat:'光学·光影',name:'多光源与多影子',one:'两个光源会产生两个影子。',
+ principle:'每个光源都会在物体背光侧投出一个影子。两个光源，就有两个（可能部分重叠的）影子。',
+ aiFail:'AI 常常「一个光源配三个影子」或者「两个光源只有一个影子」，数量对不上。',
+ verify:'数一数：画面里有几个光源？几个影子？',
+ lv:'第 3 关 · 影子叛变'},
+{cat:'光学·光影',name:'镜面反射与漫反射',one:'表面光滑发生镜面反射，表面粗糙发生漫反射。',
+ principle:'镜面反射的反射光线方向一致，所以能看到像；漫反射把光散向各个方向，所以我们能从各个角度看到不反光的物体。',
+ aiFail:'AI 常让墙壁、地面像镜子一样清晰倒映，忽略了材质决定反射方式。',
+ verify:'这个材质应该反光成镜面，还是漫散开来？',
+ lv:'第 4 关 · 空间与材质'},
+{cat:'光学·光影',name:'光的折射',one:'光从一种介质斜射入另一种介质时会偏折。',
+ principle:'光在水与空气之间会发生<b>折射</b>：插入水中的筷子看起来「折断」了，水里的鱼看起来比实际浅。',
+ aiFail:'AI 常画出「水面上下的物体在一条直线上」，没有偏移。',
+ verify:'水面上下同一条线，是不是连成了一条折线？',
+ lv:'第 4 关 · 空间与材质'},
+{cat:'光学·光影',name:'白光的色散',one:'白光经过棱镜会分成七种颜色。',
+ principle:'不同颜色的光折射率不同，白光穿过棱镜后被分开形成<b>光谱</b>。彩虹就是阳光被水滴折射色散的结果。',
+ aiFail:'AI 画的彩虹时常出现颜色顺序错乱（比如紫色在红色外面）。',
+ verify:'彩虹的颜色顺序是红橙黄绿蓝靛紫（外→内）。',
+ lv:'第 4 关 · 空间与材质'},
+{cat:'光学·光影',name:'眼睛的成像',one:'眼睛像一台照相机，在视网膜上成倒立缩小的实像。',
+ principle:'晶状体相当于凸透镜，把外界的光会聚在视网膜上成像，再由大脑「翻转」过来。',
+ aiFail:'AI 常把眼睛画成「自己发光的灯泡」。真实的眼睛不发光，只会反射光。',
+ verify:'眼睛是在发光，还是在反光？',
+ lv:'第 1 关 · 人体结构审查'},
+/* ---- 空间·材质 ---- */
+{cat:'空间·材质',name:'三维与三视图',one:'真实物体都有长、宽、高，正投影得到三视图。',
+ principle:'从正面、上面、侧面三个方向正投影，就得到主视图、俯视图、左视图。三视图能唯一还原一个物体的形状。',
+ aiFail:'<b>这是最核心的一条。</b>AI 只认识 2D 像素图案的统计规律，没有三维模型，所以它画的是「看起来像」而不是「结构正确」。',
+ verify:'把它想成真实物体：正、上、侧三个方向看，都对得上吗？',
+ lv:'全部关卡 · 核心原理'},
+{cat:'空间·材质',name:'物体不能互相穿透（穿模）',one:'两个实体不能同时占据同一块空间。',
+ principle:'现实中的物体有体积、有边界，会互相阻挡。人不能穿墙，剑不能穿身，手不能穿桌子。',
+ aiFail:'AI 缺少空间碰撞检测，常让角色<b>走进墙壁里一半</b>、武器插进身体、手指穿过琴键。',
+ verify:'有没有两个物体「占着同一块地方」？',
+ lv:'第 4 关 · 穿墙怪'},
+{cat:'空间·材质',name:'材质的刚性与形状',one:'陶瓷、金属、木材有固定形状和硬度。',
+ principle:'固体有确定的形状和体积，受力后要么变形要么破裂，不会像液体一样自由流动。',
+ aiFail:'AI 常把物体的「形状」和「材质感」分开生成，于是出现<b>陶瓷杯像橡皮泥一样融进桌子</b>的荒谬画面。',
+ verify:'这个材质该变形还是该保持形状？',
+ lv:'第 4 关 · 融化的杯子'},
+{cat:'空间·材质',name:'支撑与重心',one:'物体要稳定，重心必须落在支撑面内。',
+ principle:'桌子上的杯子不会飞起来，因为它被桌面支撑；重心超出支撑面就会翻倒。',
+ aiFail:'AI 常画「物体悬在桌子边缘不掉」「叠罗汉叠得毫无支撑」，忽略了支撑关系。',
+ verify:'它下面有东西托着吗？重心稳不稳？',
+ lv:'第 4 关 · 空间与材质'},
+/* ---- 人体结构 ---- */
+{cat:'人体结构',name:'手指的数量',one:'每只手 5 根手指，每只脚 5 个脚趾。',
+ principle:'人类一只手有 5 根手指（拇指 2 节、其余各 3 节）。这是最容易被 AI 弄错、也最容易被我们一眼看破的地方。',
+ aiFail:'AI 学习的是「手指形状」的像素概率，生成时会不断堆叠局部特征，于是<b>多出一根手指</b>——这就是「六指琴魔」的由来。',
+ verify:'数手指：一只手是不是正好 5 根？指节数对不对？',
+ lv:'第 1 关 · 六指琴魔'},
+{cat:'人体结构',name:'关节与骨骼结构',one:'关节决定肢体的活动方向，肘和膝只能单向弯曲。',
+ principle:'人体骨骼与关节决定活动范围：肘关节向后弯、膝关节向后弯，不能反折。',
+ aiFail:'AI 常画出<b>反关节</b>的胳膊和腿，因为它拼接的是「手臂零件」而不是解算骨骼链。',
+ verify:'肘、膝的弯曲方向对吗？',
+ lv:'第 1 关 · 人体结构审查'},
+{cat:'人体结构',name:'肢体数量与归属',one:'每个人都有两条胳膊、两条腿，每条都连在身体上。',
+ principle:'人体结构有明确数量与连接关系：两条上肢、两条下肢，都与躯干相连。',
+ aiFail:'AI 生成多人画面时，常出现<b>多出来一只没有主人的手</b>、或者四个人的画面里有五条腿。',
+ verify:'画面里有几个人？数一数手和腿的总数对不对得上？',
+ lv:'第 1 关 · 人体结构审查 / 第 5 关'},
+{cat:'人体结构',name:'头发、衣物有独立体积',one:'头发和布料是身体的延伸，不能变成背景。',
+ principle:'头发、衣物都有体积，会遮住身后的东西，也会随动作摆动。',
+ aiFail:'AI 常把头发「融进」背景景物里，或者让衣服边缘与背景糊成一片——教案中「头发变成背景」正是此类错误。',
+ verify:'头发边缘清楚吗？有没有和背景糊在一起？',
+ lv:'第 1 关 · 人体结构审查'},
+/* ---- 声电磁·能量 ---- */
+{cat:'声电磁·能量',name:'声音需要介质',one:'真空不能传声。',
+ principle:'声音是振动在介质（空气、水、固体）中的传播。太空中没有空气，爆炸是<b>无声</b>的。',
+ aiFail:'AI 画太空场景时仍会加「爆炸声波」，因为在它的训练数据里，爆炸就等于有声音。',
+ verify:'这里有没有可以传播声音的介质？',
+ lv:'第 5 关 · 终极拯救'},
+{cat:'声电磁·能量',name:'音调与频率',one:'频率越高，音调越高；振幅越大，响度越大。',
+ principle:'音调由<b>频率</b>决定，响度由<b>振幅</b>决定，音色由发声体的材料和结构决定。',
+ aiFail:'AI 常画出「琴弦抖得越厉害音调越高」，把振幅和频率混淆了。',
+ verify:'是抖得更快（音调高）还是抖得更大（更响）？',
+ lv:'第 5 关 · 终极拯救'},
+{cat:'声电磁·能量',name:'电流的磁效应',one:'通电导线周围会产生磁场。',
+ principle:'奥斯特实验发现电流周围存在磁场；通电线圈在磁场中受力转动，这就是<b>电动机</b>的原理。',
+ aiFail:'AI 常画出「磁铁吸住所有金属」——其实只有铁、钴、镍等能被吸引，铜和铝不行。',
+ verify:'这个材料真的会被磁铁吸引吗？',
+ lv:'第 5 关 · 终极拯救'},
+{cat:'声电磁·能量',name:'能量守恒',one:'能量不会凭空产生或消失，只会转化。',
+ principle:'能量守恒定律：能量可以转化（如电能→机械能→内能），但总量不变。所以永动机是不可能实现的。',
+ aiFail:'AI 常画出「不需要能源就永远转动的机器」，因为它不理解能量收支要平衡。',
+ verify:'它转动的能量从哪来？有没有能量来源？',
+ lv:'第 5 关 · 终极拯救'},
+{cat:'声电磁·能量',name:'热传递的方向',one:'热量自发地从高温物体传到低温物体。',
+ principle:'热传递有三种方式：传导、对流、辐射。方向总是由高温到低温，直到温度相同。',
+ aiFail:'AI 常画出「冰块在热水中变大」这类违背热传递的画面。',
+ verify:'热是从哪里流向哪里？方向对不对？',
+ lv:'第 4 关 · 融化的杯子'},
+];
+
+/* =========================================================
+   4. 关卡数据（5 关 · 由浅入深）
+   ========================================================= */
+const LEVELS = [
+{
+  no:'01', title:'人体结构审查', sub:'难度 ★☆☆☆☆ · 入门 · 训练「盯住手」',
+  type:'手部畸形 / 肢体归属',
+  brief:'审查局档案 #A-001：AI 生成的钢琴演奏片段，代号「六指琴魔」。演奏动作看似流畅，但人体结构上存在明显破绽。',
+  quote:'「先盯住手。手指的数量和指节，是最藏不住的地方。」',
+  media:{kind:'video', src:'assets/video/lv1_hand.mp4', poster:'assets/gen/goof_hand.png'},
+  hotspot:{x:47, y:66, r:22, hint:'把注意力放在画面中央那只手——从左边开始，一根、两根、三根……数到最后一根。'},
+  quiz:{
+    q:'为什么 AI 会画出「六指琴魔」？',
+    options:[
+      {t:'因为 AI 觉得六根手指更好看，故意画多了一根', ok:false, why:'AI 并没有「审美意图」。它只是在按概率补全像素，多出来的手指是错误，不是设计。'},
+      {t:'因为 AI 只认识 2D 像素图案的概率，把「手指形状」不断堆叠，所以数量算错了', ok:true, why:'正确。AI 不认识 3D 的手，它学的是「手指长什么样」的像素统计。当一个位置不确定时，它会把局部特征反复堆叠，于是多出一根手指。'},
+      {t:'因为演奏速度太快，相机拍糊了', ok:false, why:'这不是拍摄问题。AI 视频没有「真实的手」在演奏，它只是逐帧生成看起来像手的东西。'},
+      {t:'因为钢琴键盘太宽，需要多一根手指才能弹到', ok:false, why:'这是把因果搞反了——手不需要为键盘改变结构，人只有 5 根手指。'},
+    ]
+  },
+  stickers:['s_hand'], exp:110,
+  badgeAfter:{id:'b_first', em:'✋', name:'第一眼·盯住手'},
+},
+{
+  no:'02', title:'重力与运动审查', sub:'难度 ★★☆☆☆ · 基础 · 训练「看落点」',
+  type:'重力错误 / 运动状态突变',
+  brief:'审查局档案 #A-002：一条「倒流瀑布」片段——河水沿着山坡向上流去，鱼儿跟着往天上飘。另一帧里，一个苹果静静悬停在半空。',
+  quote:'「水往低处流，苹果会落地。找不到落点的东西，都值得怀疑。」',
+  media:{kind:'video', src:'assets/video/lv2_water.mp4', poster:'assets/gen/goof_water.png'},
+  hotspot:{x:48, y:45, r:22, hint:'顺着水流的方向找——它最后去了哪里？是从山上流下来，还是从下面冲上天？'},
+  quiz:{
+    q:'「水往高处流」违反了哪条物理规律？',
+    options:[
+      {t:'违反光的直线传播', ok:false, why:'这一条是光学规律，管的是影子与成像，管不了水流方向。'},
+      {t:'违反重力——水是流体，在重力作用下只能由高处流向低处', ok:true, why:'正确。水受重力作用沿重力方向流动，要让它往高处走，必须用水泵做功。AI 把「瀑布」当成一个视觉符号，忘了给它一个向下的流向。'},
+      {t:'违反能量守恒，水变多了', ok:false, why:'画面里水量并没有凭空增加，问题出在流动方向。'},
+      {t:'违反惯性，水应该继续保持原来的方向', ok:false, why:'惯性说的是保持运动状态，不是「必须往上流」。'},
+    ]
+  },
+  stickers:['s_water'], exp:130,
+  badgeAfter:{id:'b_gravity', em:'🌊', name:'重力审查官'},
+},
+{
+  no:'03', title:'光影与光学审查', sub:'难度 ★★★☆☆ · 进阶 · 训练「看影子」',
+  type:'影子方向 / 光源矛盾',
+  brief:'审查局档案 #A-003：一个阳光明媚的村庄场景。太阳明明挂在画面左侧，可地面上的影子——也朝着左边倒。',
+  quote:'「先找光源，再看影子。两者的连线，是穿帮的照妖镜。」',
+  media:{kind:'video', src:'assets/video/lv3_shadow.mp4', poster:'assets/gen/goof_shadow.png'},
+  hotspot:{x:32, y:80, r:24, hint:'别只看太阳，看地面上那一大块深色的影子——它是朝着哪一边倒的？'},
+  quiz:{
+    q:'光影穿帮的通用判断方法是？',
+    options:[
+      {t:'影子必须和光源在同一侧，这样才亮', ok:false, why:'正相反。影子是光被挡住的地方，它一定在光源的反方向。'},
+      {t:'先找到光源，再看影子的方向——影子必须出现在光源的反方向', ok:true, why:'正确。光沿直线传播，被不透明物体挡住的地方形成影子。太阳在左边，影子就必须落在右边。这一招能在 1 秒内发现绝大多数光影穿帮。'},
+      {t:'影子越深说明太阳越大', ok:false, why:'影子的深浅取决于环境光与反射光，和太阳大小没有直接关系。'},
+      {t:'只要画面好看，影子方向不重要', ok:false, why:'这正是问题所在——AI 就是把光影当成了「氛围滤镜」，所以才会出现自相矛盾的画面。'},
+    ]
+  },
+  stickers:['s_shadow'], exp:150,
+  badgeAfter:{id:'b_light', em:'🌓', name:'光影猎人'},
+},
+{
+  no:'04', title:'空间与材质审查', sub:'难度 ★★★★☆ · 进阶 · 训练「查空间」',
+  type:'物体穿模 / 材质失真',
+  brief:'审查局档案 #A-004：一位像素勇者径直走进坚固的砖墙，上半身埋进了墙体里，只剩两条腿露在墙外。同批素材里，还有一只陶瓷咖啡杯正在像橡皮泥一样融进桌面。',
+  quote:'「两个物体不能同时占着同一块地方——这是空间最基本的规矩。」',
+  media:{kind:'video', src:'assets/video/lv4_clip.mp4', poster:'assets/gen/goof_clip.png'},
+  hotspot:{x:32, y:57, r:23, hint:'看人物和墙的交界处——他的上半身去哪了？剩下的部分还露在墙外吗？'},
+  quiz:{
+    q:'「穿模」和「杯子融化」共同暴露了 AI 的什么缺陷？',
+    options:[
+      {t:'AI 的渲染速度太慢，来不及画完', ok:false, why:'这是计算性能问题，和画面里的物理错误无关。'},
+      {t:'AI 缺少三维空间与真实材质常识，只按二维图案拼接', ok:true, why:'正确。真实物体有体积、有边界、有刚性，会互相阻挡。AI 没有三维模型，也没有材质常识，于是角色穿墙、陶瓷杯像液体一样融进桌面。'},
+      {t:'AI 用的显卡不够好，像素太低', ok:false, why:'分辨率高低不影响「人能不能穿墙」这个物理问题。'},
+      {t:'AI 故意做成搞笑效果', ok:false, why:'AI 没有「故意」。这些是它理解不了三维世界而产生的真实错误——我们要做的是发现并修正。'},
+    ]
+  },
+  stickers:['s_clip'], exp:170,
+  badgeAfter:{id:'b_space', em:'🧱', name:'空间侦测员'},
+},
+{
+  no:'05', title:'终极拯救 · BOSS 战', sub:'难度 ★★★★★ · 综合 · 审查 + Debug 修正',
+  type:'综合穿帮 + 修正词调教',
+  brief:'审查局档案 #A-005（最终）：两段最离谱的素材同时出现——一个男孩和一只苹果一起悬浮在半空，以及一只咖啡杯融进了桌面。现在，请完成「找出穿帮 → 说出原因 → 写出修正词」的完整 Debug 链路。',
+  quote:'「看起来越逼真，越要仔细看。AI 可以被调教，但必须由人来把关。」',
+  media:{kind:'video', src:'assets/video/lv5_boss.mp4', poster:'assets/gen/goof_float.png'},
+  hotspot:{x:50, y:48, r:22, hint:'看画面中间：男孩的脚下面有什么？他为什么一直没有落到地上？'},
+  quiz:{
+    q:'在提示词里追加「完美的手部结构」「符合物理重力」为什么有用？',
+    options:[
+      {t:'因为这样 AI 就升级了，以后永远不会犯错', ok:false, why:'AI 并没有真正学会物理。它只是在这一条提示词下，把人类的常识临时补进了这次生成。换个场景它可能又会错。'},
+      {t:'因为修正词把人类的物理常识手动补进了 AI 的概率表，但生成后仍需人工复查', ok:true, why:'正确，也是本课的核心结论。AI 可以被调教，但它依然只认识 2D 像素图案。修正词是「临时外挂的常识」，最终把关的仍然是人——你的火眼金睛，比任何 AI 都珍贵。'},
+      {t:'因为修正词会提高视频分辨率', ok:false, why:'分辨率和物理正确性是两件事，高清的错误依然是错误。'},
+      {t:'因为加了修正词 AI 就会联网查资料', ok:false, why:'提示词不会触发联网检索，它只是影响生成本身的概率分布。'},
+    ]
+  },
+  stickers:['s_boss'], exp:220,
+  badgeAfter:{id:'b_boss', em:'👑', name:'终极拯救者'},
+},
+];
+
+/* =========================================================
+   5. 启动 / 大厅
+   ========================================================= */
+function enterHub(){
+  const n = ($('codename').value || '').trim() || '火眼小将';
+  state.name = n;
+  save();
+  SFX.win();
+  showScreen('hub');
+  renderHub();
+  toast('✅ 新生村登录成功！审查局档案已建立：' + n, 2600);
+}
+function renderHub(){
+  refreshTopbar();
+  $('hub-greet').innerHTML = '审查局大厅 · 欢迎回来，<span class="hl">' + state.name + '</span>';
+  const done = Object.values(state.levels).filter(v=>v && v.done).length;
+  $('hub-progress').textContent = '进度 ' + done + ' / 5 关';
+  $('hub-rank').textContent = '段位：' + currentRank().name;
+
+  const box = $('lv-list');
+  box.innerHTML = '';
+  LEVELS.forEach((L, i)=>{
+    const rec = state.levels[i];
+    const prevDone = i === 0 || (state.levels[i-1] && state.levels[i-1].done);
+    const locked = !prevDone && !(rec && rec.done);
+    const el = document.createElement('div');
+    el.className = 'lv' + (locked ? ' locked' : '') + (rec && rec.done ? ' done' : '');
+    el.innerHTML = `
+      <div class="lv-num">${L.no}</div>
+      <div class="lv-main">
+        <div class="lv-name">${L.title}
+          <span class="tag ${rec&&rec.done?'green':'yellow'}">${L.type}</span>
+        </div>
+        <div class="lv-sub">${L.sub}</div>
+        <div class="lv-stars">${rec && rec.done ? '最高得分 ' + rec.best + ' 分' : '尚未挑战'}</div>
+      </div>
+      <div class="lv-state ${rec&&rec.done?'ok':(locked?'lk':'')}">${rec&&rec.done?'✔ 已完成':(locked?'🔒 未解锁':'▶ 开始')}</div>
+    `;
+    el.onclick = ()=>{
+      if(locked){ SFX.miss(); toast('🔒 请先通过上一关，才能解锁本关。'); return; }
+      SFX.click(); startLevel(i);
+    };
+    box.appendChild(el);
+  });
+  drawPathFx();
+}
+function drawPathFx(){
+  const c = $('pathfx'); if(!c) return;
+  const p = c.parentElement;
+  c.width = p.clientWidth; c.height = p.clientHeight;
+  const g = c.getContext('2d');
+  g.clearRect(0,0,c.width,c.height);
+  g.strokeStyle = 'rgba(168,194,113,.75)';
+  g.lineWidth = 6; g.setLineDash([16, 12]);
+  g.beginPath();
+  g.moveTo(56, 120);
+  g.lineTo(c.width - 60, c.height - 40);
+  g.stroke();
+}
+
+/* =========================================================
+   6. 关卡逻辑
+   ========================================================= */
+let LV = { idx:0, tries:3, score:0, paused:false, marked:false, hintUsed:false, answered:false };
+
+function startLevel(i){
+  const L = LEVELS[i];
+  LV = { idx:i, tries:3, score:0, paused:false, marked:false, hintUsed:false, answered:false };
+  $('lv-no').textContent = L.no;
+  $('lv-title').textContent = L.no + ' · ' + L.title;
+  $('lv-sub').textContent = L.sub;
+  $('lv-type').textContent = L.type;
+  $('lv-brief').textContent = L.brief;
+  $('lv-quote').textContent = L.quote;
+  $('lv-score').textContent = '0';
+  $('lv-hit').textContent = '-';
+  $('lv-try').textContent = '3';
+  setStep(1);
+  showAction('observe');
+  // 媒体
+  const f = $('frame');
+  const old = f.querySelector('img,video');
+  if(old) old.remove();
+  f.querySelectorAll('.tap-play,.sound-tip').forEach(n=>n.remove());
+  if(L.media.kind === 'video'){
+    const v = document.createElement('video');
+    v.src = L.media.src; v.poster = L.media.poster;
+    v.loop = true; v.playsInline = true; v.muted = false; v.preload = 'auto';
+    v.setAttribute('playsinline',''); v.setAttribute('webkit-playsinline','');
+    f.appendChild(v);
+    // 视频要等元数据到位才知道真实画幅，这里多重触发 + 短时轮询，
+    // 确保圈注层始终精确贴合「实际渲染出来的画面」。
+    v.addEventListener('loadedmetadata', syncMarkLayer);
+    v.addEventListener('loadeddata', syncMarkLayer);
+    v.addEventListener('canplay', syncMarkLayer);
+    v.addEventListener('playing', syncMarkLayer);
+    let _st = 0;
+    const _iv = setInterval(()=>{ syncMarkLayer(); if(++_st > 20) clearInterval(_iv); }, 150);
+    // ① 文件读不出来（漏复制 assets / 传输损坏 / 编码不支持）→ 明确报「素材缺失」，
+    //    绝不能笼统地报成「自动播放被拦截」——那会把排查方向带偏。
+    v.addEventListener('error', ()=> reportMediaMissing(v, L.media.src));
+    setTimeout(()=>{
+      if(!$('frame').contains(v) || v.videoWidth) return;
+      if(v.error || v.networkState === 3) reportMediaMissing(v, L.media.src);
+    }, 4000);
+    // ② 点画面 = 播放/暂停，并顺便把声音开回来（老师现场应急用）。
+    v.addEventListener('click', ()=>{
+      if(v.paused) autoplayMedia(v, true); else v.pause();
+    });
+    // ③ 立刻、同步地在「用户点击关卡卡片」这个调用栈里播放：
+    //    浏览器会把这次播放视为用户主动发起，因此在任何设备上都允许带声音播放。
+    autoplayMedia(v, true);
+  }else{
+    const im = document.createElement('img');
+    im.src = L.media.src;
+    im.addEventListener('load', syncMarkLayer);
+    im.addEventListener('error', ()=> toast('⚠ 找不到素材：' + L.media.src + '　请把 assets 文件夹与 HTML 一起复制', 7000));
+    f.appendChild(im);
+  }
+  $('markLayer').innerHTML = '';
+  $('markLayer').style.pointerEvents = 'none';
+  $('pausehz').classList.remove('show');
+  showScreen('level');
+  setTimeout(syncMarkLayer, 60);
+}
+/* 让红笔圈注层精确覆盖在「实际渲染出来的画面」上（object-fit:contain） */
+/* ---------- 媒体播放加固 ----------
+   核心原则：把「文件读不出来」和「被自动播放策略拦截」严格分开。
+   这两者的成因和解决办法完全不同，混在一起只会把排查方向带偏。 */
+function mediaFailKind(v){
+  if(!v) return 'policy';
+  if(v.videoWidth > 0) return 'policy';         // 已拿到画面尺寸 → 文件肯定是好的，只可能是策略问题
+  if(v.error) return 'source';                  // 1=中断 2=网络 3=解码失败 4=格式不支持/文件不存在
+  if(v.networkState === 3) return 'source';     // NETWORK_NO_SOURCE：一个可用的源都没找到
+  return 'policy';
+}
+/* 自动播放三级兜底：
+   ① 带声音播放（在用户点击的调用栈内调用最可靠）
+   ② 被策略拦截 → 退回静音播放（静音自动播放在所有浏览器上都放行），并给「开声音」按钮
+   ③ 连静音都不行 → 给原生控件 + 一个大播放按钮，保证一按就能动
+   注意：MediaError 有可能比 play() 的 reject 晚一拍触发，所以判定原因时要隔一拍再看。 */
+function autoplayMedia(v, wantSound){
+  // 被 pause() 打断的 play() 会抛 AbortError —— 那是用户主动暂停，不是失败，
+  // 忽略即可（否则会在刚暂停的画面上弹出一个多余的「点击播放」）。
+  const isAbort = (e)=> !!(e && (e.name === 'AbortError' || e.code === 20));
+  const tryPlay = (muted)=>{
+    v.muted = muted;
+    let p;
+    try{ p = v.play(); }catch(e){ return Promise.reject(e); }
+    return (p && p.then) ? p : Promise.resolve();
+  };
+  const decide = (onPolicy)=>{
+    setTimeout(()=>{
+      if(mediaFailKind(v) === 'source') reportMediaMissing(v, v.getAttribute('src'));
+      else onPolicy();
+    }, 150);
+  };
+  tryPlay(wantSound === false).then(()=>{
+    if(wantSound !== false) clearSoundTip();
+  }).catch((err)=>{
+    if(isAbort(err)) return;
+    decide(()=>{
+      tryPlay(true).then(()=>{
+        showSoundTip(v);
+      }).catch((err2)=>{
+        if(isAbort(err2)) return;
+        decide(()=>{
+          v.setAttribute('controls','');
+          showTapPlay(v, '▶ 点击播放');
+        });
+      });
+    });
+  });
+}
+/* 素材确实读不出来：把文件名直接报出来，一眼就知道缺了哪一项 */
+function reportMediaMissing(v, src){
+  if(v._reported) return;
+  v._reported = true;
+  v.setAttribute('controls','');
+  showTapPlay(v, '⚠ 素材没有找到');
+  toast('⚠ 视频加载失败：' + src + '　请确认 assets/video 文件夹已与 HTML 一起复制', 9000);
+  console.warn('[素材缺失]', src, v.error ? ('MediaError code=' + v.error.code) : '');
+}
+function showTapPlay(v, text){
+  const f = $('frame'); if(f.querySelector('.tap-play')) return;
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'tap-play'; b.textContent = text;
+  b.onclick = (ev)=>{
+    ev.stopPropagation();
+    b.remove();
+    v.setAttribute('controls','');
+    v.muted = false;
+    const p = v.play();
+    if(p && p.catch) p.catch(()=>{ v.muted = true; v.play().catch(()=>{}); });
+  };
+  f.appendChild(b);
+}
+function showSoundTip(v){
+  const f = $('frame'); if(f.querySelector('.sound-tip')) return;
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'sound-tip'; b.textContent = '🔊 点击开启声音';
+  b.onclick = (ev)=>{
+    ev.stopPropagation();
+    v.muted = false; v.volume = 1;
+    const p = v.play();
+    if(p && p.catch) p.catch(()=>{ v.muted = true; v.play().catch(()=>{}); toast('本机仍限制了带声音播放，请检查浏览器设置或系统音量。', 4000); });
+    b.remove();
+  };
+  f.appendChild(b);
+}
+function clearSoundTip(){
+  const f = $('frame'); if(!f) return;
+  const t = f.querySelector('.sound-tip'); if(t) t.remove();
+}
+
+function syncMarkLayer(){
+  const f = $('frame'), ml = $('markLayer');
+  if(!f || !ml) return;
+  const media = f.querySelector('img,video');
+  if(!media) return;
+  let nw = media.naturalWidth || media.videoWidth || 0;
+  let nh = media.naturalHeight || media.videoHeight || 0;
+  if(!nw || !nh) return;
+  const fw = f.clientWidth, fh = f.clientHeight;
+  if(!fw || !fh) return;
+  const s = Math.min(fw / nw, fh / nh);
+  const rw = nw * s, rh = nh * s;
+  ml.style.left   = ((fw - rw) / 2) + 'px';
+  ml.style.top    = ((fh - rh) / 2) + 'px';
+  ml.style.width  = rw + 'px';
+  ml.style.height = rh + 'px';
+}
+function setStep(n){
+  for(let i=1;i<=4;i++){
+    const el = $('st'+i);
+    el.classList.remove('on','ok');
+    if(i < n) el.classList.add('ok');
+    if(i === n) el.classList.add('on');
+  }
+}
+function showAction(which){
+  $('act-observe').classList.add('hidden');
+  $('act-mark').classList.add('hidden');
+  $('act-quiz').classList.add('hidden');
+  $('act-'+which).classList.remove('hidden');
+}
+function doPause(){
+  const f = $('frame');
+  const v = f.querySelector('video');
+  if(v){ v.pause(); }
+  const im = f.querySelector('img');
+  if(im) im.classList.add('frozen');
+  $('pausehz').classList.add('show');
+  SFX.pause();
+  const fl = $('flash'); fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
+  setTimeout(()=>$('pausehz').classList.remove('show'), 900);
+  if(!LV.marked){
+    setStep(3);
+    showAction('mark');
+    $('markLayer').style.pointerEvents = 'auto';
+    toast('⏸ 画面已冻结！现在在画面上点击穿帮的位置。', 2400);
+  }
+}
+/* 重看片段：视频类关卡从头播放，并回到「观察 → 暂停」这一步 */
+function replayClip(){
+  const f = $('frame');
+  const v = f.querySelector('video');
+  const im = f.querySelector('img');
+  if(v){
+    try{ v.currentTime = 0; }catch(e){}
+    // 「重看片段」是按钮点击触发，属于用户手势 —— 借这个机会把声音一并开回来。
+    autoplayMedia(v, true);
+  }
+  if(im) im.classList.remove('frozen');
+  $('pausehz').classList.remove('show');
+  if(!LV.marked){
+    $('markLayer').innerHTML = '';
+    $('markLayer').style.pointerEvents = 'none';
+    setStep(1);
+    showAction('observe');
+  }
+  toast('↺ 重新播放片段——看准了再按暂停键。', 2400);
+}
+function useHint(){
+  if(LV.hintUsed){ toast('本关已经用过锦囊了。'); return; }
+  LV.hintUsed = true;
+  LV.score = Math.max(0, LV.score - 10);
+  updateScore();
+  toast('💡 排查锦囊：' + LEVELS[LV.idx].hotspot.hint, 4200);
+}
+function updateScore(){
+  $('lv-score').textContent = LV.score;
+  $('lv-hit').textContent = LV.marked ? (LV.hitQuality || '-') : '-';
+  $('lv-try').textContent = LV.tries;
+}
+function quitLevel(){
+  SFX.click();
+  showScreen('hub'); renderHub();
+}
+
+// 点击标记
+$('markLayer').addEventListener('click', function(ev){
+  if(LV.marked) return;
+  const L = LEVELS[LV.idx];
+  const rect = this.getBoundingClientRect();
+  const px = (ev.clientX - rect.left) / rect.width * 100;
+  const py = (ev.clientY - rect.top) / rect.height * 100;
+  const d = Math.hypot(px - L.hotspot.x, py - L.hotspot.y);
+  const r = L.hotspot.r;
+
+  // 画红圈
+  const m = document.createElement('div');
+  m.className = 'mark';
+  m.style.left = px + '%'; m.style.top = py + '%';
+  const sizePct = 14;
+  m.style.width = sizePct + '%'; m.style.height = '0';
+  m.style.paddingBottom = sizePct + '%';
+  m.style.height = 'auto';
+  m.style.boxSizing = 'border-box';
+  m.style.borderRadius = '50%';
+
+  if(d <= r){
+    // 精准命中
+    m.style.borderColor = '#A8C271';
+    m.setAttribute('data-label','✔ 精准命中！');
+    LV.marked = true; LV.hitQuality = '精准';
+    LV.score += 100;
+    SFX.hit();
+    flash('glitch');
+    setTimeout(()=>{ toast('🎯 精准命中！正中穿帮位置，获得 100 分。', 2600); onMarked(); }, 260);
+  }else if(d <= r*2.1){
+    m.style.borderColor = '#F5B731';
+    m.setAttribute('data-label','≈ 接近了');
+    LV.tries--;
+    LV.score += 40;
+    SFX.click();
+    if(LV.tries <= 0){ LV.marked = true; LV.hitQuality = '未命中'; onMarked(); }
+    else toast('≈ 很接近了！红圈再往' + hintDir(px,py,L.hotspot) + '一点。剩余 ' + LV.tries + ' 次机会。', 3200);
+  }else{
+    m.style.borderColor = '#E8554B';
+    m.setAttribute('data-label','✘ 偏了');
+    LV.tries--;
+    SFX.miss();
+    flash('flash');
+    if(LV.tries <= 0){ LV.marked = true; LV.hitQuality = '未命中'; onMarked(); }
+    else toast('✘ 偏了。想想四向排查锦囊，剩余 ' + LV.tries + ' 次机会。', 3000);
+  }
+  this.appendChild(m);
+  updateScore();
+});
+function hintDir(px,py,h){
+  const dx = h.x - px, dy = h.y - py;
+  const v = Math.abs(dy) > Math.abs(dx) ? (dy>0?'下':'上') : (dx>0?'右':'左');
+  return v + '（约 ' + Math.round(Math.hypot(dx,dy)) + '% 的距离）';
+}
+function flash(which){
+  const el = $(which);
+  el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
+}
+function onMarked(){
+  $('markLayer').style.pointerEvents = 'none';
+  setStep(4);
+  showAction('quiz');
+  const q = LEVELS[LV.idx].quiz;
+  const box = $('quiz-opts');
+  box.innerHTML = '';
+  const order = q.options.map((o,i)=>({o,i}));
+  shuffle(order);
+  order.forEach(({o}, k)=>{
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.innerHTML = '<span class="k">' + 'ABCD'[k] + '</span><span>' + o.t + '</span>';
+    b.onclick = ()=>answer(b, o);
+    box.appendChild(b);
+  });
+  toast('📝 圈注完成！现在选出一句正确的物理学解释。', 2600);
+}
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function answer(btn, opt){
+  if(LV.answered) return;
+  LV.answered = true;
+  const q = LEVELS[LV.idx].quiz;
+  document.querySelectorAll('#quiz-opts .opt').forEach(b=>b.disabled = true);
+  if(opt.ok){
+    btn.classList.add('right');
+    LV.score += 120;
+    SFX.right();
+    showReveal(true, q, opt);
+  }else{
+    btn.classList.add('wrong');
+    // 标出正确项
+    document.querySelectorAll('#quiz-opts .opt').forEach(b=>{
+      if(b.querySelector('span:last-child').textContent === q.options.find(o=>o.ok).t) b.classList.add('right');
+    });
+    LV.score += 20;
+    SFX.wrong();
+    showReveal(false, q, opt);
+  }
+  updateScore();
+}
+function showReveal(ok, q, opt){
+  const L = LEVELS[LV.idx];
+  const rec = state.levels[LV.idx];
+  const firstClear = !(rec && rec.done);
+  if(firstClear){
+    state.levels[LV.idx] = {done:true, best:LV.score};
+  }else{
+    rec.best = Math.max(rec.best, LV.score);
+  }
+  // 贴纸：首次通关与重复挑战都发放（每关每次通关 +1 张）。
+  // 贴纸是扭蛋机唯一的“货币”，如果只在首次通关发放，全游戏总产出会固定在 11 张，
+  // 只够抽 3 次，抽完就永久差 1 张、再也抽不了 —— 学生会被卡死在扭蛋机前。
+  // 因此这里改为「重复挑战同样产出」，让贴纸有持续来源。
+  const gained = [];
+  L.stickers.forEach(sid=>{
+    state.stickers[sid] = (state.stickers[sid]||0) + 1;
+    const d = STICKER_DEFS.find(s=>s.id===sid);
+    if(d) gained.push(d);
+  });
+  // 经验只在首次通关发放，避免反复刷关刷经验
+  if(firstClear){
+    state.exp += L.exp;
+    if(L.badgeAfter && !state.badges[L.badgeAfter.id]){
+      state.badges[L.badgeAfter.id] = true;
+    }
+  }
+  save(); refreshTopbar();
+
+  const correctOpt = q.options.find(o=>o.ok);
+  const why = ok ? correctOpt.why : (opt.why + '<br><br><b>✔ 正确答案：</b>' + correctOpt.t + '<br>' + correctOpt.why);
+
+  const card = $('revealCard');
+  card.innerHTML = `
+    <div class="big">${ok ? '🎉 验证成功！' : '🔍 差一点点'}</div>
+    <div class="smallnote">${ok ? '你用现实常识检验了 AI 的输出——这就是「验证意识」。' : '别灰心，把正确的解释记进曝光板，你就升级了。'}</div>
+    <div class="scores mt14">
+      <div>本关得分 <b class="mono">${LV.score}</b></div>
+      <div>圈注判定 <b>${LV.hitQuality || '未记录'}</b></div>
+      <div>段位 <b>${currentRank().name}</b></div>
+    </div>
+    <div class="why">${why}</div>
+    ${gained.length ? `<div class="rewardrow">${gained.map((g,i)=>`<div class="rewardchip" style="animation-delay:${i*.12}s"><span style="font-size:22px">${g.em}</span> 火眼金睛贴纸 · ${g.name} <b style="color:#B3472F">+1</b></div>`).join('')}</div>
+      <div class="smallnote">${firstClear
+        ? `首次通关：贴纸 +1、经验 +${L.exp}、最高分 ${LV.score}。`
+        : `重复挑战同样产出贴纸：每次通关 +1 张（经验只在首次通关发放）。`} 集满 3 张就能去「我的档案」页的秘境扭蛋机抽一次。</div>`
+      : ''}
+    ${firstClear && L.badgeAfter ? `<div class="rewardrow"><div class="rewardchip" style="animation-delay:.4s;background:var(--sky)"><span style="font-size:22px">${L.badgeAfter.em}</span> 新勋章：${L.badgeAfter.name}</div></div>` : ''}
+    <div class="rewardrow">
+      <button class="btn green" onclick="closeReveal();nextLevel()">${LV.idx < LEVELS.length-1 ? '▶ 前往下一关' : '▶ 查看我的档案'}</button>
+      <button class="btn ghost" onclick="closeReveal();renderHub();showScreen('hub')">返回大厅</button>
+      <button class="btn blue sm" onclick="closeReveal();startLevel(${LV.idx})">↺ 再挑战一次</button>
+    </div>
+  `;
+  $('reveal').classList.add('show');
+  if(ok && firstClear){ SFX.reward(); confetti(70); }
+  else SFX.tick();
+}
+function closeReveal(){ $('reveal').classList.remove('show'); }
+function nextLevel(){
+  if(LV.idx < LEVELS.length-1){ startLevel(LV.idx+1); }
+  else{
+    SFX.win(); confetti(120);
+    showScreen('profile'); renderProfile();
+    toast('🏆 五关全通！你已获得「探知之眼」候选资格。', 3600);
+  }
+}
+function chant(){
+  if(!state.chantDone){
+    state.chantDone = true;
+    state.stickers['s_chant'] = (state.stickers['s_chant']||0) + 1;
+    state.exp += 60;
+    save();
+    SFX.win(); confetti(50);
+    toast('📣 齐读成功！获得隐藏贴纸「口诀齐读」+60 经验。', 3200);
+  }else{
+    SFX.click();
+    toast('口诀的力量已经记录在档案里了。');
+  }
+  speak('像素不是实体，AI 没有常识；眼看手查心验证，火眼金睛不吃亏！');
+}
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 1.0;
+    window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* =========================================================
+   7. 图鉴渲染
+   ========================================================= */
+let cdCat = '全部';
+function renderCodex(){
+  $('cd-count').textContent = CODEX.length;
+  // 分类按钮
+  const cbox = $('cd-cats');
+  cbox.innerHTML = '';
+  ['全部'].concat(CATS).forEach(c=>{
+    const b = document.createElement('button');
+    b.className = 'cat' + (cdCat === c ? ' on' : '');
+    b.textContent = c + (c==='全部' ? '' : '（' + CODEX.filter(x=>x.cat===c).length + '）');
+    b.onclick = ()=>{ cdCat = c; SFX.click(); renderCodex(); };
+    cbox.appendChild(b);
+  });
+  const kw = ($('cd-search').value || '').trim().toLowerCase();
+  kw0 = kw;
+  // 过滤
+  let list = CODEX.filter(x=>{
+    const catOk = (cdCat === '全部') || (x.cat === cdCat);
+    if(!catOk) return false;
+    if(!kw) return true;
+    const hay = (x.name + x.one + x.principle + x.aiFail + x.verify + x.cat + x.lv).toLowerCase();
+    return hay.indexOf(kw) >= 0;
+  });
+  const cards = $('cd-cards');
+  cards.innerHTML = '';
+  if(!list.length){
+    cards.innerHTML = '<div class="panel" style="grid-column:1/-1;text-align:center">🔍 没有找到匹配的知识点。换个关键词试试？比如「影子」<br><button class="btn sm blue mt8" onclick="document.getElementById(\'cd-search\').value=\'\';renderCodex()">查看全部 '+CODEX.length+' 条</button></div>';
+    return;
+  }
+  list.forEach((x)=>{
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `
+      <span class="catmini">${x.cat.split('·')[0]}</span>
+      <h3>${visMark(x.name)}</h3>
+      <div class="one">${visMark(x.one)}</div>
+      <span class="open">▾ 点击展开完整说明</span>
+    `;
+    el.onclick = ()=>{
+      SFX.click();
+      openDetail(x, el);
+    };
+    cards.appendChild(el);
+  });
+}
+function visMark(s){
+  if(!kw0) return s;
+  try{
+    return s.replace(new RegExp('(' + kw0.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')','gi'), '<mark style="background:#FFDE59">$1</mark>');
+  }catch(e){ return s; }
+}
+let kw0 = '';
+function openDetail(x, cardEl){
+  const prev = document.querySelector('.detail');
+  if(prev && prev.dataset.name === x.name){ prev.remove(); return; }
+  if(prev) prev.remove();
+  const d = document.createElement('div');
+  d.className = 'detail';
+  d.dataset.name = x.name;
+  d.innerHTML = `
+    <h3>${x.name} <span class="tag blue">${x.cat}</span></h3>
+    <div class="blk">
+      <span class="lb a">一句话原理</span>
+      <p>${x.principle}</p>
+    </div>
+    <div class="blk">
+      <span class="lb b">AI 为什么会在这里出错</span>
+      <p>${x.aiFail}</p>
+    </div>
+    <div class="blk">
+      <span class="lb c">现实检验法（用眼睛就能查）</span>
+      <p>${x.verify}</p>
+    </div>
+    <div class="blk">
+      <span class="lb yellow">出现在</span>
+      <p>${x.lv}</p>
+    </div>
+    <button class="btn sm ghost" onclick="this.parentElement.remove()">收起</button>
+  `;
+  cardEl.parentElement.insertBefore(d, cardEl.nextSibling);
+}
+
+/* =========================================================
+   8. Debug 修正实验室
+   ========================================================= */
+const LAB_ORIG = [
+  '【原始提示词】一个男孩在草地上弹钢琴，特写镜头，温暖的阳光，电影感',
+  '【AI 输出】演奏动作流畅，但……他的手有 6 根手指。',
+  '',
+  '审查局提示：这不是「不好看」的问题，而是「不可能」的问题。',
+  '请在下面的词库里，挑出能修正它的关键词。'
+].join('\n');
+
+const LAB_WORDS = [
+  {t:'完美的手部结构', good:true},
+  {t:'每只手5根手指', good:true},
+  {t:'符合物理重力', good:true},
+  {t:'三视图一致的立体结构', good:true},
+  {t:'更暖的夕阳色调', good:false},
+  {t:'4K超高清分辨率', good:false},
+  {t:'慢动作镜头', good:false},
+  {t:'电影级景深', good:false},
+  {t:'让画面更梦幻', good:false},
+  {t:'角色再多一点', good:false},
+];
+let labPicked = [];
+
+function initLab(){
+  labPicked = [];
+  $('lab-orig').innerHTML = LAB_ORIG.replace(/\n/g,'<br>')
+    .replace(/【原始提示词】/,'<span class="you">【原始提示词】</span>')
+    .replace(/【AI 输出】/,'<span class="warn">【AI 输出】</span>')
+    .replace('6 根手指','<span class="warn"><b>6 根手指</b></span>');
+  renderLabWords();
+  $('lab-prompt').textContent = '（点击上面的修正词，把它们加进来…）';
+  $('lab-gen').style.display = 'none';
+}
+function renderLabWords(){
+  const box = $('lab-words'); box.innerHTML = '';
+  LAB_WORDS.forEach((w,i)=>{
+    const b = document.createElement('button');
+    const on = labPicked.indexOf(i) >= 0;
+    b.className = 'word' + (on ? ' picked' : '');
+    b.textContent = (on ? '✔ ' : '＋ ') + w.t;
+    b.onclick = ()=>{
+      SFX.click();
+      const k = labPicked.indexOf(i);
+      if(k >= 0) labPicked.splice(k,1); else labPicked.push(i);
+      renderLabWords(); renderLabPrompt();
+    };
+    box.appendChild(b);
+  });
+}
+function renderLabPrompt(){
+  if(!labPicked.length){ $('lab-prompt').textContent = '（点击上面的修正词，把它们加进来…）'; return; }
+  $('lab-prompt').innerHTML = '一个男孩在草地上弹钢琴，特写镜头，温暖的阳光，电影感，' +
+    labPicked.map(i=>'<span class="tag green">'+LAB_WORDS[i].t+'</span>').join(' ');
+}
+function runGen(){
+  const good = labPicked.filter(i=>LAB_WORDS[i].good).length;
+  const bad  = labPicked.filter(i=>LAB_WORDS[i].good === false).length;
+  const box = $('lab-gen'); box.style.display = 'flex';
+
+  const key = ['s_hand','s_water','s_shadow','s_clip','s_boss'].length;
+  if(good >= 2 && bad === 0){
+    $('lab-img').src = 'assets/gen/goof_hand.png';
+    $('lab-img').style.filter = 'none';
+    $('lab-result').innerHTML = '<b style="color:#FFDE59">⚙ 重新生成中…生成完成 ✔</b><br><br>' +
+      '✔ <b>修正成功！</b> 你追加了 ' + good + ' 个「物理约束词」，' +
+      'AI 这一次把手指数量算对了，重力也站住了。<br><br>' +
+      '💡 <b>关键理解</b>：AI 并没有真的「学会」物理，是你在提示词里把人类的常识手动补进了它的概率表。' +
+      '换一个场景，它可能又会犯错——<b>所以最终把关的，仍然是你的眼睛。</b>';
+    if(!state.labDone['ok']){
+      state.labDone['ok'] = true;
+      state.exp += 80;
+      save();
+    }
+    SFX.reward(); confetti(50);
+    toast('✔ Debug 修正成功！+80 经验', 2600);
+  }else if(good >= 1 && bad <= 1){
+    $('lab-img').src = 'assets/gen/goof_hand.png';
+    $('lab-img').style.filter = 'saturate(.7)';
+    $('lab-result').innerHTML = '<b style="color:#FFDE59">⚙ 重新生成中…生成完成 ⚠</b><br><br>' +
+      '⚠ <b>部分修正</b>：你加了一些正确的约束词，方向对了。' +
+      '但画面里还混进了 {bad} 个和物理无关的「氛围词」——它们只会改变画面好看不好看，<b>不会修正物理错误</b>。<br><br>' +
+      '再试一次：只保留和「结构 / 重力 / 空间」有关的词。';
+    SFX.tick();
+  }else{
+    $('lab-img').src = 'assets/gen/goof_hand.png';
+    $('lab-img').style.filter = 'hue-rotate(20deg) saturate(1.3)';
+    $('lab-result').innerHTML = '<b style="color:#FF6B6B">⚙ 重新生成中…生成失败 ✘</b><br><br>' +
+      '✘ <b>修正失败</b>：你选的词大多在描述「画面氛围」，' +
+      '而手部结构、重力、空间这些<b>物理约束</b>一个都没有补进去。<br><br>' +
+      '提示词里没有约束，AI 就继续按它的老习惯瞎猜。想想教案里的那句：' +
+      '「完美的手部结构」「符合物理重力」——把物理常识写进去。';
+    SFX.wrong();
+  }
+}
+
+/* =========================================================
+   9. 档案 / 扭蛋
+   ========================================================= */
+function renderProfile(){
+  const r = currentRank();
+  $('pf-rank').textContent = r.name;
+  $('pf-rdesc').textContent = r.desc;
+  const base = r.min, next = expToNext();
+  $('pf-xp').textContent = '经验值 ' + state.exp + ' / ' + next;
+  const pct = clamp((state.exp - base)/Math.max(1,(next-base))*100, 0, 100);
+  $('pf-expbar').style.width = pct + '%';
+
+  // 扭蛋机：把「当前贴纸 / 需要多少」直接摆在按钮下面，避免学生点了才知道不够
+  const gc = $('gacha-cost');
+  if(gc){
+    const n = stickerCount();
+    gc.innerHTML = '当前贴纸 <b>' + n + '</b> / 需要 ' + GACHA_COST + ' 张' +
+      (n >= GACHA_COST
+        ? ' <span class="tag green">可以抽啦</span>'
+        : ' <span class="tag yellow">还差 ' + (GACHA_COST - n) + ' 张</span>');
+  }
+
+  // 贴纸墙
+  const sb = $('pf-stickers'); sb.innerHTML = '';
+  STICKER_DEFS.forEach(d=>{
+    const n = state.stickers[d.id] || 0;
+    const el = document.createElement('div');
+    el.className = 'sticker' + (n ? ' got' : ' no');
+    el.innerHTML = '<span class="em">' + d.em + '</span>' + d.name +
+      '<div class="mono" style="font-size:12px;margin-top:4px">x' + n + '</div>';
+    sb.appendChild(el);
+  });
+
+  // 勋章
+  const bb = $('pf-badges'); bb.innerHTML = '';
+  const allBadges = LEVELS.map(l=>l.badgeAfter).filter(Boolean)
+    .concat([{id:'b_film', em:'🎬', name:'放映厅·全数揪出'},
+             {id:'b_eye5', em:'🔮', name:'碎片信物·集齐 5 片'},
+             {id:'b_all', em:'👁', name:'探知之眼·信物'}]);
+  allBadges.forEach(b=>{
+    const got = !!state.badges[b.id] || (b.id === 'b_all' && Object.values(state.levels).filter(v=>v&&v.done).length >= 5);
+    const el = document.createElement('div');
+    el.className = 'sticker' + (got ? ' got' : ' no');
+    el.innerHTML = '<span class="em">' + b.em + '</span>' + b.name;
+    bb.appendChild(el);
+  });
+
+  // 收藏册
+  const cb = $('pf-coll'); cb.innerHTML = '';
+  GACHA_POOL.forEach(g=>{
+    const got = !!state.coll[g.id];
+    const shard = (got && g.id === 'g_eye')
+      ? '<div class="mono" style="font-weight:800;margin-top:4px">碎片 ' + (state.shards||0) + ' / 5</div>'
+      : '';
+    const el = document.createElement('div');
+    el.className = 'coll' + (got ? '' : ' no');
+    el.innerHTML = '<span class="em">' + (got ? g.em : '❓') + '</span>' +
+      (got ? g.name + shard + '<div style="font-weight:700;color:var(--ink-soft);margin-top:4px">' + g.desc + '</div>' : '未解锁');
+    cb.appendChild(el);
+  });
+}
+const GACHA_COST = 3;   // 抽一次消耗的贴纸数
+function playGacha(){
+  const have = stickerCount();
+  if(have < GACHA_COST){
+    SFX.miss();
+    toast('❌ 还差 ' + (GACHA_COST - have) + ' 张贴纸（当前 ' + have + '/' + GACHA_COST +
+          '）。去【主线任务】或【放映厅】再通关一次就能拿到贴纸。', 3800);
+    return;
+  }
+  // 扣贴纸
+  let need = GACHA_COST;
+  for(const k in state.stickers){
+    if(need <= 0) break;
+    const take = Math.min(state.stickers[k], need);
+    state.stickers[k] -= take; need -= take;
+  }
+  SFX.gacha();
+  const out = $('gacha-out');
+  out.textContent = '🎰 扭蛋滚动中…';
+  let ticks = 0;
+  const iv = setInterval(()=>{
+    out.textContent = '🎰 ' + pick(GACHA_POOL).name + ' …';
+    SFX.tick();
+    if(++ticks > 12){
+      clearInterval(iv);
+      const g = pick(GACHA_POOL);
+      const isNew = !state.coll[g.id];
+      state.coll[g.id] = true;
+      let extra = '';
+      // 「探知之眼碎片刻」是按片累积的，集齐 5 片解锁隐藏信物勋章
+      if(g.id === 'g_eye'){
+        state.shards = (state.shards || 0) + 1;
+        extra = ' <span class="tag yellow">碎片 ' + state.shards + '/5</span>';
+        if(state.shards >= 5 && !state.badges['b_eye5']){
+          state.badges['b_eye5'] = true;
+          extra += ' <span class="tag green">集齐 5 片 · 解锁信物！</span>';
+          confetti(90);
+        }
+      }
+      // 抽到重复道具也返还少量经验，避免 3 张贴纸换一个「重复」的空手体验
+      state.exp += isNew ? 30 : 10;
+      save(); refreshTopbar(); renderProfile();
+      out.innerHTML = '🎁 抽到：<span style="font-size:26px">' + g.em + '</span> <b>' + g.name + '</b>' +
+        (isNew ? ' <span class="tag green">NEW! +30经验</span>' : ' <span class="tag yellow">重复 · 返还 10 经验</span>') +
+        extra +
+        '<div class="smallnote" style="margin-top:6px">' + g.desc + '</div>';
+      SFX.reward(); confetti(40);
+    }
+  }, 110);
+}
+
+/* =========================================================
+   10. 放映厅（环节一 · AI视频烂番薯大赏 找茬大赛）
+   ========================================================= */
+const FILMS = [
+  {no:'01', file:'assets/video/lv1_hand.mp4', title:'六指琴魔', meta:'约 15 秒 · 场景：钢琴特写',
+   q:'暂停画面后，这段影片最明显的穿帮属于哪一类？',
+   opts:[{t:'手部畸形：手指的数量不对', ok:true},
+         {t:'重力错误：琴键悬在空中', ok:false},
+         {t:'穿模：手穿过了琴键', ok:false}],
+   why:'AI 学的是「手指长什么样」的像素概率。当一个位置不确定时，它会把局部特征不断堆叠，于是多出一根手指——这就是「六指琴魔」的由来。',
+   codex:'手指的数量'},
+  {no:'02', file:'assets/video/lv2_water.mp4', title:'倒流瀑布', meta:'约 15 秒 · 场景：山坡河流',
+   q:'暂停画面后，这段影片最明显的穿帮属于哪一类？',
+   opts:[{t:'重力错误：水往高处流、鱼儿往天上飘', ok:true},
+         {t:'手部畸形：手指多长出一根', ok:false},
+         {t:'光影错误：影子和光源在同一侧', ok:false}],
+   why:'水是流体，在重力作用下只能由高处流向低处。这段影片里水从山脚一路冲上天空，把重力方向彻底颠倒了——AI 把「瀑布」当成视觉符号，忘了给它一个向下的流向。',
+   codex:'液体总往低处流'},
+  {no:'03', file:'assets/video/lv3_shadow.mp4', title:'影子叛变', meta:'约 10 秒 · 场景：阳光村庄',
+   q:'暂停画面后，这段影片最明显的穿帮属于哪一类？',
+   opts:[{t:'光影错误：太阳在左上角，影子却倒在左边', ok:true},
+         {t:'穿模：男孩走进了房子里', ok:false},
+         {t:'重力错误：男孩悬浮在空中', ok:false}],
+   why:'光沿直线传播，被不透明物体挡住的地方才会形成影子，所以影子必须落在光源的反方向。影片里太阳明明挂在左上角，地上的影子却也朝左边倒——这是最典型的光影穿帮。',
+   codex:'影子的方向'},
+  {no:'04', file:'assets/video/lv4_clip.mp4', title:'穿墙怪', meta:'约 10 秒 · 场景：城堡外墙',
+   q:'暂停画面后，这段影片最明显的穿帮属于哪一类？',
+   opts:[{t:'穿模：人物走进了实体墙壁里', ok:true},
+         {t:'材质失真：砖墙像水一样流动', ok:false},
+         {t:'光影错误：影子方向反了', ok:false}],
+   why:'两个实体不能同时占据同一块空间。AI 缺少三维空间与碰撞理解，所以人物会直接「走进」墙体里——这就是穿模。',
+   codex:'物体不能互相穿透（穿模）'},
+  {no:'05', file:'assets/video/lv5_boss.mp4', title:'悬浮危机', meta:'约 10 秒 · 场景：村庄上空',
+   q:'暂停画面后，这段影片最明显的穿帮属于哪一类？',
+   opts:[{t:'重力错误：男孩和苹果都悬在半空，找不到落点', ok:true},
+         {t:'手部畸形：男孩的手指数量不对', ok:false},
+         {t:'光影错误：天空里没有影子', ok:false}],
+   why:'苹果会落地、跳起的人会落回地面，靠的都是重力。影片里男孩和苹果一起静静悬停在半空，谁都没有落点——这是把重力整个删掉的错误。',
+   codex:'重力的方向'},
+];
+if(!state.films) state.films = {};
+
+function renderCinema(){
+  $('ci-done').textContent = Object.values(state.films).filter(v=>v).length;
+  $('ci-exp').textContent = state.exp;
+  const g = $('filmGrid'); g.innerHTML = '';
+  FILMS.forEach((F,i)=>{
+    const el = document.createElement('div');
+    el.className = 'film';
+    el.innerHTML = `
+      <div class="no">${F.no}</div>
+      <h3>${F.title}</h3>
+      <div class="meta">${F.meta}${state.films[i] ? ' · <span style="color:#5C8A34">✔ 已揪出</span>' : ''}</div>
+      <div class="vp">
+        <video src="${F.file}" muted loop playsinline preload="metadata"></video>
+        <span class="stat">▶ 播放中</span>
+        <div class="big-pause">⏸</div>
+      </div>
+      <div class="row mt8">
+        <button class="btn sm red" onclick="filmPause(${i})">⏸ 按下暂停键</button>
+        <button class="btn sm blue" onclick="openBigPlay(${i})">⛶ 全屏投屏播放</button>
+      </div>
+      <div class="q">${F.q}</div>
+      <div class="chs">
+        ${F.opts.map((o,k)=>`<button disabled onclick="filmChoose(${i},${k})">${'ABC'[k]}. ${o.t}</button>`).join('')}
+      </div>
+      <div class="verdict hidden"></div>
+    `;
+    g.appendChild(el);
+    el.querySelector('video').play().catch(()=>{});
+  });
+}
+function filmEl(i){ const g = $('filmGrid'); return g ? g.children[i] : null; }
+function filmPause(i){
+  const el = filmEl(i); if(!el) return;
+  el.querySelector('video').pause();
+  el.querySelector('.stat').textContent = '⏸ 已冻结';
+  const bp = el.querySelector('.big-pause');
+  bp.classList.add('show'); setTimeout(()=>bp.classList.remove('show'), 700);
+  SFX.pause();
+  el.querySelectorAll('.chs button').forEach(b=>b.disabled = false);
+  toast('⏸ 画面已冻结！请说出这段影片的穿帮类型。', 2600);
+}
+function filmChoose(i,k){
+  const F = FILMS[i], el = filmEl(i); if(!el) return;
+  const btns = el.querySelectorAll('.chs button');
+  const o = F.opts[k];
+  btns.forEach((b,idx)=>{ b.disabled = true; if(F.opts[idx].ok) b.classList.add('ok'); });
+  if(!o.ok) btns[k].classList.add('no');
+  const vd = el.querySelector('.verdict');
+  vd.classList.remove('hidden');
+  if(o.ok){
+    SFX.right();
+    vd.innerHTML = '✔ <b>正确！</b>' + F.why + '<br><br>📚 对应知识图鉴：<b>' + F.codex + '</b>';
+    const first = !state.films[i];
+    if(first){
+      state.films[i] = true;
+      state.exp += 40;
+      state.stickers['s_film'] = (state.stickers['s_film']||0) + 1;
+      if(Object.values(state.films).filter(v=>v).length >= 3) state.badges['b_film'] = true;
+      save(); refreshTopbar(); confetti(50);
+      toast('🎉 揪出一段穿帮！+40 经验 +1 火眼金睛贴纸', 2600);
+      el.querySelector('.meta').innerHTML = F.meta + ' · <span style="color:#5C8A34">✔ 已揪出</span>';
+    }
+    $('ci-done').textContent = Object.values(state.films).filter(v=>v).length;
+    $('ci-exp').textContent = state.exp;
+  }else{
+    SFX.wrong();
+    vd.innerHTML = '✘ <b>再想想。</b>本段正确的穿帮类型是「' + F.opts.find(x=>x.ok).t + '」。<br><br>' + F.why;
+  }
+}
+function openBigPlay(i){
+  const F = FILMS[i];
+  $('bpTitle').textContent = '#' + F.no + ' ' + F.title + ' — 全屏投屏播放';
+  const v = $('bpVideo');
+  v.src = F.file; v.muted = false; v.loop = true;
+  $('bigplay').classList.add('show');
+  v.play().catch(()=>{});
+}
+function bpPause(){
+  const v = $('bpVideo');
+  if(v.paused){ v.play().catch(()=>{}); toast('▶ 继续播放'); }
+  else { v.pause(); SFX.pause(); toast('⏸ 已冻结画面——请指出穿帮位置！', 2600); }
+}
+function closeBigPlay(){
+  const v = $('bpVideo'); v.pause(); v.removeAttribute('src'); v.load();
+  $('bigplay').classList.remove('show');
+}
+document.addEventListener('keydown', function(e){
+  if(e.code === 'Space'){
+    const bp = $('bigplay');
+    if(bp && bp.classList.contains('show')){ e.preventDefault(); bpPause(); }
+  }
+  if(e.code === 'Escape'){
+    const bp = $('bigplay');
+    if(bp && bp.classList.contains('show')) closeBigPlay();
+    const rv = $('reveal');
+    if(rv && rv.classList.contains('show')) rv.classList.remove('show');
+  }
+});
+
+/* =========================================================
+   11. 教师投屏端
+   ========================================================= */
+const T_STAGES = [
+  {label:'导入 · 时空裂缝警报', sec:600,
+   q:'看科幻大片时，你找过穿帮镜头吗？<br><span class="hl">为什么这些镜头让人出戏？</span>',
+   list:['重播第 21 课自己的动画片段','灵枢系统警报：物理规律断裂','发布挑战：揪出所有违背物理常识的「幽灵 bug」','公布「火眼金睛」贴纸奖励']},
+  {label:'环节一 · AI视频烂番薯大赏（找茬大赛）', sec:1200,
+   q:'谁第一个喊「停」，<br><span class="hl">并准确指出哪里穿帮？</span>',
+   list:['玩法：按下暂停键，喊停即抢答','5 段素材：手部畸形 / 物体穿模 / 水往高处流 / 头发变背景','追问：为什么 AI 会犯这种错？','点拨：AI 只认识 2D 像素图案，不认识 3D 实体']},
+  {label:'环节二 · 猎物狩猎（穿帮曝光板）', sec:1800,
+   q:'回看自己的动画片段，<br><span class="hl">把它当成「找猎物」！</span>',
+   list:['截图打印 → 贴上曝光板','红笔圈出错误 + 写一句物理学解释','终极拯救：追加修正词，重新生成并对比','四向排查：手部 / 光影 / 重力 / 穿模']},
+  {label:'环节三 · 探知之眼激活（验收发布会）', sec:900,
+   q:'我揪出的最离谱穿帮 +<br><span class="hl">我的物理学解释 + 修正成功了吗</span>',
+   list:['三段式汇报上台展示','评选「最毒辣找茬奖」与「最强Debug奖」','信物激活仪式：探知之眼，激活！','留钩子：画面有了，可它像哑巴一样干瘪…']},
+  {label:'升华总结 · AI不是全知全能', sec:900,
+   q:'为什么看起来很逼真的视频，<br><span class="hl">仔细看却漏洞百出？</span>',
+   list:['点破：火眼金睛比任何 AI 都珍贵','口诀：像素不是实体，AI没有常识；眼看手查心验证，火眼金睛不吃亏！','填写学习日志','曝光板归档 → 第 25 课「最搞笑穿帮奖」']},
+];
+let tIdx = 0, tTimerIv = null, tLeft = 0;
+let teams = [
+  {name:'第 1 组', score:0},
+  {name:'第 2 组', score:0},
+  {name:'第 3 组', score:0},
+  {name:'第 4 组', score:0},
+];
+function initTeacher(){
+  tIdx = 0; renderTeacher(); renderTeams();
+}
+function renderTeacher(){
+  const s = T_STAGES[tIdx];
+  $('t-stage').textContent = '第 ' + (tIdx+1) + '/' + T_STAGES.length + ' 段';
+  $('t-qlabel').textContent = '▍' + s.label;
+  $('t-qtext').innerHTML = s.q;
+  $('t-tlist').innerHTML = s.list.map((x,i)=>'<div><span class="k">'+(i+1)+'</span><span>'+x+'</span></div>').join('');
+  $('t-time').textContent = Math.floor(s.sec/60);
+}
+function tPrev(){ if(tIdx>0){ tIdx--; SFX.click(); renderTeacher(); } }
+function tNext(){ if(tIdx<T_STAGES.length-1){ tIdx++; SFX.click(); renderTeacher(); } else { toast('已经是最后一个环节了。'); } }
+function tTimer(sec){
+  tStopTimer();
+  tLeft = sec;
+  $('t-time').textContent = tLeft;
+  $('t-time').classList.remove('low');
+  tTimerIv = setInterval(()=>{
+    tLeft--;
+    $('t-time').textContent = tLeft;
+    if(tLeft <= 10) $('t-time').classList.add('low');
+    if(tLeft <= 5 && tLeft > 0) SFX.tick();
+    if(tLeft <= 0){
+      clearInterval(tTimerIv); tTimerIv = null;
+      SFX.wrong();
+      toast('⏰ 时间到！停止作答。', 2600);
+    }
+  }, 1000);
+  SFX.pause();
+}
+function tStopTimer(){
+  if(tTimerIv){ clearInterval(tTimerIv); tTimerIv = null; }
+  $('t-time').classList.remove('low');
+}
+function tReveal(){
+  const s = T_STAGES[tIdx];
+  SFX.click();
+  const card = $('revealCard');
+  card.innerHTML = `
+    <div class="big">👁 揭晓答案</div>
+    <div class="smallnote">${s.label}</div>
+    <div class="why" style="text-align:left">
+      ${s.list.map((x,i)=>'<div style="margin-bottom:6px"><b>'+(i+1)+'.</b> '+x+'</div>').join('')}
+      <hr style="border:none;border-top:3px dashed #35384E;margin:10px 0">
+      <b>核心结论</b>：AI 只认识 2D 像素图案，不认识 3D 实体；重力、材质、人体结构对它只是概率。<br>
+      <b>修正思路</b>：在提示词里追加「完美的手部结构」「符合物理重力」等物理约束词，重新生成并对比验证。
+    </div>
+    <button class="btn green" onclick="document.getElementById('reveal').classList.remove('show')">✔ 继续上课</button>
+  `;
+  $('reveal').classList.add('show');
+}
+function renderTeams(){
+  const box = $('t-teams'); box.innerHTML = '';
+  teams.forEach((t,i)=>{
+    const el = document.createElement('div');
+    el.className = 'teamrow';
+    el.innerHTML = `
+      <span class="nm">${t.name}</span>
+      <span class="sc mono">${t.score}</span>
+      <span class="pm">
+        <button class="plus" onclick="tScore(${i},2)">＋2</button>
+        <button class="minus" onclick="tScore(${i},-1)">－1</button>
+      </span>
+    `;
+    box.appendChild(el);
+  });
+}
+function tScore(i, d){
+  teams[i].score = Math.max(0, teams[i].score + d);
+  SFX.click(); renderTeams();
+}
+function tAddTeam(){
+  teams.push({name:'第 ' + (teams.length+1) + ' 组', score:0});
+  SFX.click(); renderTeams();
+}
+function tResetTeams(){
+  teams.forEach(t=>t.score = 0);
+  SFX.miss(); renderTeams();
+  toast('小组分数已清零。');
+}
+
+/* =========================================================
+   12. 环境自检（素材完整性检查）
+   换一台电脑后先跑这个：直接告诉你缺了哪个文件，
+   而不是让你去猜「为什么视频不播」。
+   ========================================================= */
+const DIAG_ASSETS = [
+  'assets/gen/cover_hero.png',
+  'assets/gen/mascot.png',
+  'assets/gen/badge_eye.png',
+  'assets/gen/goof_hand.png',
+  'assets/gen/goof_water.png',
+  'assets/gen/goof_shadow.png',
+  'assets/gen/goof_clip.png',
+  'assets/gen/goof_float.png',
+  'assets/video/lv1_hand.mp4',
+  'assets/video/lv2_water.mp4',
+  'assets/video/lv3_shadow.mp4',
+  'assets/video/lv4_clip.mp4',
+  'assets/video/lv5_boss.mp4'
+];
+function probeImage(src){
+  return new Promise(r=>{
+    const im = new Image();
+    const t = setTimeout(()=>r({src, ok:false, why:'超时未响应'}), 8000);
+    im.onload = ()=>{ clearTimeout(t); r({src, ok:true, info:im.naturalWidth + '×' + im.naturalHeight}); };
+    im.onerror = ()=>{ clearTimeout(t); r({src, ok:false, why:'文件不存在'}); };
+    im.src = src;
+  });
+}
+function probeVideo(src){
+  return new Promise(r=>{
+    const v = document.createElement('video');
+    v.preload = 'metadata'; v.muted = true;
+    let done = false;
+    const fin = (o)=>{
+      if(done) return; done = true; clearTimeout(t);
+      r(Object.assign({src}, o));
+      v.removeAttribute('src'); try{ v.load(); }catch(e){}
+    };
+    const t = setTimeout(()=>fin({ok:false, why:'超时未响应'}), 9000);
+    v.onloadedmetadata = ()=>fin({ok:true, info:v.videoWidth + '×' + v.videoHeight + ' · ' + (v.duration||0).toFixed(1) + 's'});
+    v.onerror = ()=>fin({ok:false, why:(v.error && v.error.code === 4) ? '文件不存在或格式不支持' : '读取失败'});
+    v.src = src;
+  });
+}
+async function runDiag(){
+  showScreen('diag');
+  const box = $('diag-list'), sum = $('diag-sum');
+  if(!box) return;
+  box.innerHTML = '<div class="smallnote">正在检测 ' + DIAG_ASSETS.length + ' 项素材……</div>';
+  if(sum) sum.innerHTML = '';
+  const res = [];
+  for(const src of DIAG_ASSETS){
+    const r = await (/\.mp4$/i.test(src) ? probeVideo(src) : probeImage(src));
+    res.push(r);
+    box.innerHTML = res.map(x=>
+      '<div class="diag-row ' + (x.ok ? 'ok' : 'bad') + '">' +
+        '<span class="st">' + (x.ok ? '✔ OK' : '✘ 缺失') + '</span>' +
+        '<span>' + x.src + '</span>' +
+        '<span class="p">' + (x.ok ? (x.info || '') : (x.why || '')) + '</span>' +
+      '</div>').join('')
+      + (res.length < DIAG_ASSETS.length ? '<div class="smallnote">…检测中 ' + res.length + ' / ' + DIAG_ASSETS.length + '</div>' : '');
+  }
+  const bad = res.filter(x=>!x.ok);
+  if(sum){
+    sum.innerHTML = bad.length === 0
+      ? '<div class="alert-box diag-sum-ok">✔ ' + res.length + ' 项素材全部就位 —— 这台电脑上游戏可以正常播放，换任何浏览器都一样。</div>'
+      : '<div class="alert-box" style="border-color:var(--red);background:#FFECEA">✘ 有 <b>' + bad.length + '</b> 项没找到：<br>' +
+        bad.map(x=>'· ' + x.src).join('<br>') +
+        '<br><br>请把 <b>assets</b> 文件夹与 HTML 文件<b>一起</b>复制（两者必须在同一个目录下），再点右上角「↻ 重新检测」。</div>';
+  }
+}
+
+/* =========================================================
+   13. 启动
+   ========================================================= */
+/* 支持 URL 直接跳转，方便课堂点名投屏：
+   #hub #cinema #codex #lab #profile #teacher #diag #lv1 ~ #lv5 */
+function applyHash(){
+  const h = (location.hash || '').replace('#','').trim();
+  if(!h) return;
+  if(h === 'hub'){ showScreen('hub'); renderHub(); }
+  else if(h === 'cinema'){ showScreen('cinema'); renderCinema(); }
+  else if(h === 'codex'){ showScreen('codex'); renderCodex(); }
+  else if(h === 'lab'){ showScreen('lab'); initLab(); }
+  else if(h === 'profile'){ showScreen('profile'); renderProfile(); }
+  else if(h === 'teacher'){ showScreen('teacher'); initTeacher(); }
+  else if(h === 'diag'){ runDiag(); }
+  else if(/^lv[1-5]$/.test(h)){
+    const i = parseInt(h.slice(2), 10) - 1;
+    renderHub(); startLevel(i);
+  }
+}
+window.addEventListener('hashchange', applyHash);
+
+/* ---------------------------------------------------------
+   开发自检：在网址后面加 ?autotest=1
+   会自动跑完「进入大厅 → 开始第1关 → 暂停 → 圈注 → 答题 → 揭晓」
+   用于课堂前快速确认交互链路正常
+   --------------------------------------------------------- */
+function autoTest(){
+  state.name = '自检专员';
+  showScreen('hub'); renderHub();
+  setTimeout(()=>{
+    startLevel(0);
+    setTimeout(()=>{
+      doPause();
+      const ml = $('markLayer');
+      const r = ml.getBoundingClientRect();
+      const L = LEVELS[0];
+      const cx = r.left + r.width  * L.hotspot.x / 100;
+      const cy = r.top  + r.height * L.hotspot.y / 100;
+      ml.dispatchEvent(new MouseEvent('click', {clientX:cx, clientY:cy, bubbles:true}));
+      setTimeout(()=>{
+        const want = LEVELS[0].quiz.options.find(o=>o.ok).t;
+        const btn = Array.from(document.querySelectorAll('#quiz-opts .opt')).find(b=>{
+          const sp = b.querySelectorAll('span');
+          return sp.length && sp[sp.length-1].textContent === want;
+        });
+        if(btn) btn.click();
+        const d = document.createElement('div');
+        d.id = 'autotest-result';
+        d.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:9999;background:#000;color:#0f0;font:12px monospace;padding:8px;max-width:680px;border:2px solid #0f0;white-space:pre-wrap';
+        const _fd = $('frame');
+        const _md = _fd ? _fd.querySelector('img,video') : null;
+        const _ml = $('markLayer');
+        d.textContent = 'AUTOTEST 自检结果\n'
+          + '圈注层尺寸(应≈画面渲染尺寸): ' + Math.round(r.width) + ' x ' + Math.round(r.height) + '\n'
+          + '画框尺寸: ' + (_fd ? _fd.clientWidth + ' x ' + _fd.clientHeight : '-') + '\n'
+          + '媒体类型: ' + (_md ? _md.tagName : '-') + ' | 原始尺寸: '
+              + (_md ? (_md.videoWidth || _md.naturalWidth || 0) + ' x ' + (_md.videoHeight || _md.naturalHeight || 0) : '-') + '\n'
+          + '圈注层内联样式: ' + (_ml ? (_ml.style.width || '(空)') + ' / ' + (_ml.style.height || '(空)') : '-') + '\n'
+          + '圈注判定: ' + (LV.hitQuality || '未命中') + '\n'
+          + '本关得分: ' + LV.score + '\n'
+          + '答题选项数: ' + document.querySelectorAll('#quiz-opts .opt').length + '\n'
+          + '揭晓弹层已显示: ' + $('reveal').classList.contains('show') + '\n'
+          + '贴纸总数: ' + stickerCount() + ' | 经验: ' + state.exp;
+        document.body.appendChild(d);
+      }, 500);
+    }, 600);
+  }, 400);
+}
+
+(function boot(){
+  load();
+  refreshTopbar();
+  renderHub();
+  applyHash();
+  if(location.search.indexOf('autotest') >= 0) autoTest();
+  if(location.search.indexOf('diag') >= 0) runDiag();
+  // 素材体检：开机静默检查一次。缺文件时立刻提示，
+  // 免得课堂上放视频放到一半才发现 —— 换电脑后特别有用。
+  setTimeout(()=>{
+    Promise.all(DIAG_ASSETS.map(s=> /\.mp4$/i.test(s) ? probeVideo(s) : probeImage(s))).then(list=>{
+      const bad = list.filter(x=>!x.ok);
+      if(bad.length){
+        toast('⚠ 检测到 ' + bad.length + ' 项素材缺失，点「🔧 环境自检」查看是哪些文件', 9000);
+        console.warn('[素材体检] 缺失：' + bad.map(x=>x.src).join(' , '));
+      }else{
+        console.log('%c[素材体检] ✔ ' + list.length + ' 项素材全部就位', 'color:#5C8A34;font-weight:800');
+      }
+    }).catch(()=>{});
+  }, 900);
+  // 云朵飘动
+  const bk = $('boot');
+  for(let i=0;i<5;i++){
+    const c = document.createElement('div');
+    c.className = 'cloud';
+    c.style.top = (8 + i*13) + '%';
+    c.style.animationDuration = (38 + i*9) + 's';
+    c.style.animationDelay = (-i*6) + 's';
+    const sz = 44 + i*12;
+    c.style.width = sz*2.4 + 'px'; c.style.height = sz + 'px';
+    c.style.background = '#FFFFFF';
+    c.style.borderRadius = '50%';
+    c.style.boxShadow = '0 0 0 6px rgba(255,255,255,.55)';
+    bk.appendChild(c);
+  }
+  window.addEventListener('resize', ()=>{
+    if($('hub').classList.contains('active')) drawPathFx();
+    if($('level').classList.contains('active')) syncMarkLayer();
+  });
+  // 记录已加载的资源（便于面试展示时说明）
+  console.log('%c秘境电影审查局 · 物理规律验证官 已就绪','background:#35384E;color:#FFDE59;padding:4px 10px;font-weight:800');
+  console.log('关卡数:', LEVELS.length, '| 图鉴知识点:', CODEX.length, '| 贴纸种类:', STICKER_DEFS.length, '| 扭蛋道具:', GACHA_POOL.length);
+})();
+</script>
+</body>
+</html>

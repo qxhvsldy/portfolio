@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YANCY TAN · 数字媒体艺术教师作品集</title>
+<style>
+/* ============ 基础 ============ */
+@font-face{font-family:'Bricolage';src:url('assets/fonts/BricolageGrotesque.ttf');font-display:swap}
+@font-face{font-family:'PMarker';src:url('assets/fonts/PermanentMarker.ttf');font-display:swap}
+@font-face{font-family:'Caveat';src:url('assets/fonts/Caveat.ttf');font-display:swap}
+:root{
+  --cream:#F6F3EC; --paper:#FFFDF7; --ink:#191A1C;
+  --green:#17A34A; --green-deep:#0C4F2A; --green-soft:#DFF2E4;
+  --yellow:#FFD43B; --red:#FF5A4E; --cyan:#00C2A8;
+  --muted:#6E6A5E; --line:#D8D2C2;
+  --shadow:4px 4px 0 rgba(25,26,28,.9);
+  --shadow-s:3px 3px 0 rgba(25,26,28,.85);
+  --r:16px;
+  --f-disp:'Bricolage','PingFang SC','Microsoft YaHei',sans-serif;
+  --f-hand:'PMarker','PingFang SC','Microsoft YaHei',cursive;
+  --f-cav:'Caveat','PingFang SC',cursive;
+  --f-cn:'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink);font-family:var(--f-cn);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{color:inherit}
+::selection{background:var(--green);color:#fff}
+
+/* ============ keyframes（复刻 marker-doodle） ============ */
+@keyframes inUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes inPop{from{opacity:0;transform:scale(.86) rotate(var(--rot,0deg))}to{opacity:1;transform:scale(1) rotate(var(--rot,0deg))}}
+@keyframes draw{from{stroke-dashoffset:var(--len,300)}to{stroke-dashoffset:0}}
+@keyframes marquee{to{transform:translateX(-50%)}}
+@keyframes wiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes grow{from{transform:scaleX(.06);opacity:.4}to{transform:scaleX(1);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes blinkEye{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.12)}}
+
+/* 滚动 reveal */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:none}
+.rv.pop{transform:scale(.9)}
+.rv.pop.in{transform:scale(1) rotate(var(--rot,0deg))}
+
+/* ============ 导航 ============ */
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .35s,box-shadow .35s,border-color .35s;border-bottom:1.5px solid transparent}
+.nav.on-hero{background:transparent}
+.nav.scrolled{background:rgba(246,243,236,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-color:var(--ink)}
+.nav .in{max-width:1220px;margin:0 auto;display:flex;align-items:center;gap:26px;padding:15px 22px}
+.nav .logo{font-family:var(--f-disp);font-weight:800;font-size:19px;letter-spacing:-.5px;display:flex;align-items:center;gap:9px;cursor:pointer}
+.nav.on-hero .logo,.nav.on-hero .links a,.nav.on-hero .cta{color:#fff}
+.nav .logo .mark{width:27px;height:27px;border-radius:9px;background:var(--green);color:#fff;display:grid;place-items:center;font-size:13px;transform:rotate(-6deg);font-family:var(--f-hand)}
+.nav .links{display:flex;gap:22px;margin-left:auto}
+.nav .links a{text-decoration:none;font-size:14px;opacity:.72;transition:opacity .2s,color .2s;cursor:pointer}
+.nav .links a:hover{opacity:1;color:var(--green)}
+.nav .cta{background:var(--ink);color:var(--cream);border-radius:99px;padding:9px 18px;font-size:13.5px;text-decoration:none;border:1.5px solid var(--ink);transition:transform .2s,background .2s,color .2s}
+.nav .cta:hover{transform:translateY(-2px) rotate(-1deg)}
+.nav.on-hero .cta{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.5)}
+@media(max-width:840px){.nav .links{display:none}}
+
+/* ============ 极光 Hero ============ */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#040d16}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero .veil{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 110%,rgba(4,13,22,.55),transparent 55%);pointer-events:none}
+.hero-inner{position:relative;z-index:3;text-align:center;padding:96px 22px 90px;pointer-events:none}
+.hero-inner>*{pointer-events:auto}
+.hero-tag{display:inline-flex;align-items:center;gap:10px;font-size:13.5px;letter-spacing:3px;color:#A9FFE3;border:1px solid rgba(169,255,227,.4);border-radius:99px;padding:8px 18px;background:rgba(0,20,15,.35);backdrop-filter:blur(6px);animation:inUp .8s .1s ease both}
+.hero-tag i{width:8px;height:8px;border-radius:99px;background:#00E5C7;box-shadow:0 0 12px #00E5C7;animation:floaty 2.4s ease infinite}
+.hero h1{font-family:var(--f-disp);font-weight:800;font-size:clamp(64px,13vw,168px);line-height:.94;letter-spacing:-.04em;color:#fff;margin:30px 0 10px;text-shadow:0 0 40px rgba(0,229,199,.35)}
+.hero h1 em{font-style:normal;color:transparent;-webkit-text-stroke:2px #7CFFD8}
+.hero h1 .w1{display:inline-block;animation:inUp .9s .25s ease both}
+.hero h1 .w2{display:inline-block;animation:inUp .9s .4s ease both}
+.hero .cn{font-size:17px;letter-spacing:14px;color:#BFEBDD;margin:6px 0 22px;text-indent:14px;animation:inUp .9s .55s ease both}
+.hero p{color:#9adfc9;font-size:15.5px;max-width:520px;margin:0 auto;line-height:1.9;animation:inUp .9s .68s ease both}
+.hero p b{color:#fff;border-bottom:2px solid var(--cyan)}
+.hero .scroll-cue{margin-top:46px;display:inline-flex;flex-direction:column;align-items:center;gap:8px;color:#7fbfa9;font-size:12px;letter-spacing:3px;text-decoration:none;animation:inUp .9s .8s ease both}
+.hero .scroll-cue i{width:22px;height:22px;border-radius:99px;border:1.5px solid #7fbfa9;display:grid;place-items:center;animation:floaty 2s ease infinite;font-style:normal}
+.hero .hint{position:absolute;z-index:3;right:26px;bottom:24px;font-family:var(--f-hand);color:#8fe8cd;font-size:15px;letter-spacing:1px;opacity:.85;animation:floaty 3.4s ease infinite;pointer-events:none}
+.webgl-fallback{position:absolute;inset:0;background:linear-gradient(160deg,#04101c,#063a2e 45%,#04203f);display:none}
+.webgl-fallback::after{content:"";position:absolute;inset:0;background:radial-gradient(60% 45% at 30% 30%,rgba(0,229,199,.22),transparent 60%),radial-gradient(55% 40% at 75% 25%,rgba(46,111,255,.2),transparent 60%);animation:floaty 6s ease infinite}
+
+/* ============ 简历概况 ============ */
+.profile{max-width:1220px;margin:0 auto;padding:86px 22px 30px;position:relative}
+.hi-kicker{font-family:var(--f-hand);font-size:clamp(19px,2.4vw,27px);color:var(--green);display:inline-flex;align-items:center;gap:12px}
+.hi-kicker .arr{animation:wiggle 2.6s ease infinite;display:inline-block}
+.prof-grid{display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:54px;margin-top:34px;align-items:start}
+@media(max-width:920px){.prof-grid{grid-template-columns:1fr;gap:40px}}
+.prof-photo{position:relative;justify-self:center}
+.prof-photo .blob{width:min(340px,80vw);aspect-ratio:1/1.06;border-radius:46% 54% 52% 48%/48% 46% 54% 52%;background:var(--green);border:2.5px solid var(--ink);box-shadow:var(--shadow);overflow:hidden;transform:rotate(-2deg)}
+.prof-photo .blob img{width:100%;height:100%;object-fit:cover}
+.prof-photo .tape{position:absolute;top:-16px;left:50%;transform:translateX(-50%) rotate(-5deg);width:130px;height:34px;background:rgba(255,212,59,.65);border-left:2px dashed rgba(25,26,28,.25);border-right:2px dashed rgba(25,26,28,.25);box-shadow:0 3px 8px rgba(0,0,0,.12)}
+.prof-photo .sticker{position:absolute;right:-14px;bottom:34px;background:var(--yellow);border:2px solid var(--ink);border-radius:99px;padding:8px 16px;font-family:var(--f-cav);font-size:19px;transform:rotate(6deg);box-shadow:var(--shadow-s);animation:inPop .7s .5s both}
+.prof-photo .sticker2{position:absolute;left:-18px;top:30px;background:var(--red);color:#fff;border:2px solid var(--ink);border-radius:99px;padding:7px 14px;font-family:var(--f-cav);font-size:17px;transform:rotate(-8deg);box-shadow:var(--shadow-s);animation:inPop .7s .68s both}
+.prof-copy h2{font-size:clamp(28px,3.6vw,44px);line-height:1.28;font-weight:800;letter-spacing:-.5px}
+.prof-copy h2 .circ{position:relative;white-space:nowrap;color:var(--green-deep)}
+.prof-copy h2 .circ svg{position:absolute;left:-8%;top:-16%;width:116%;height:138%;pointer-events:none}
+.prof-copy h2 .circ svg path{stroke:var(--green);stroke-width:5;fill:none;stroke-linecap:round;stroke-dasharray:var(--len,340);stroke-dashoffset:var(--len,340);transition:stroke-dashoffset 1.4s ease .4s}
+.drawn h2 .circ svg path{stroke-dashoffset:0}
+.prof-copy h2 .uline{position:relative;white-space:nowrap}
+.prof-copy h2 .uline::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:9px;background:var(--yellow);border-radius:9px;transform:scaleX(.06);transform-origin:left;transition:transform 1s ease .9s}
+.drawn h2 .uline::after{transform:scaleX(1)}
+.prof-copy .lead{margin-top:26px;font-size:15.5px;line-height:2.02;color:#3B382F}
+.prof-copy .lead b{color:var(--ink)}
+.prof-copy .lead .g{color:var(--green-deep);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:34px}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--paper);border:2px solid var(--ink);border-radius:14px;padding:18px 14px 14px;box-shadow:var(--shadow-s);position:relative}
+.stat:nth-child(odd){transform:rotate(-.7deg)}
+.stat:nth-child(even){transform:rotate(.8deg)}
+.stat b{font-family:var(--f-disp);font-size:clamp(28px,3vw,40px);font-weight:800;color:var(--green-deep);display:block;line-height:1}
+.stat b i{font-style:normal;font-size:19px;color:var(--green)}
+.stat span{display:block;margin-top:6px;font-size:12px;letter-spacing:1px;color:var(--muted)}
+.stat .ico{position:absolute;top:-14px;right:-8px;width:30px;height:30px;border-radius:99px;border:2px solid var(--ink);display:grid;place-items:center;font-size:14px}
+.stat:nth-child(1) .ico{background:var(--yellow)}
+.stat:nth-child(2) .ico{background:var(--red);color:#fff}
+.stat:nth-child(3) .ico{background:var(--cyan)}
+.stat:nth-child(4) .ico{background:var(--green);color:#fff}
+
+/* 时间线 */
+.tline{margin-top:46px;border-top:2.5px solid var(--ink);padding-top:34px}
+.tline .tl-title{font-family:var(--f-hand);font-size:20px;color:var(--ink);margin-bottom:26px;display:flex;align-items:center;gap:10px}
+.tl-title .doodle-star{animation:spin 9s linear infinite}
+.tline .rows{display:grid;gap:0}
+.trow{display:grid;grid-template-columns:150px 22px minmax(0,1fr);gap:0 14px;padding:13px 0;border-bottom:1.5px dashed var(--line)}
+.trow:last-child{border-bottom:none}
+.trow .yr{font-family:var(--f-disp);font-weight:800;font-size:16px;color:var(--green-deep)}
+.trow .dot{position:relative}
+.trow .dot::before{content:"";position:absolute;top:5px;left:5px;width:11px;height:11px;border-radius:99px;background:var(--green);border:2px solid var(--ink)}
+.trow .wh{font-size:14.5px;font-weight:700}
+.trow .wh small{display:block;font-weight:400;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.65}
+@media(max-width:640px){.trow{grid-template-columns:86px 16px minmax(0,1fr)}.trow .yr{font-size:13.5px}}
+
+/* ============ 通用板块 ============ */
+.sec{max-width:1220px;margin:0 auto;padding:84px 22px 10px}
+.sec-head{display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap;position:relative}
+.sec-head .p-num{font-family:var(--f-disp);font-weight:800;font-size:clamp(46px,6vw,84px);line-height:.8;color:transparent;-webkit-text-stroke:2px var(--ink);opacity:.9}
+.sec-head h2{font-size:clamp(30px,4.4vw,52px);font-weight:800;letter-spacing:-1px;line-height:1.05}
+.sec-head h2 i{display:block;font-style:normal;font-family:var(--f-hand);font-size:15px;letter-spacing:2.5px;color:var(--green);margin-top:8px;font-weight:400}
+.sec-head .p-meta{margin-left:auto;max-width:330px;font-size:13.5px;color:var(--muted);line-height:1.8;padding-bottom:8px}
+.sec-head .tape{position:absolute;top:-20px;left:calc(50% - 300px);width:120px;height:30px;background:rgba(23,163,74,.28);transform:rotate(-4deg);border-left:2px dashed rgba(25,26,28,.2);border-right:2px dashed rgba(25,26,28,.2)}
+@media(max-width:900px){.sec-head .p-meta{margin-left:0;max-width:none}}
+.p-story{margin:22px 0 30px;font-size:15.5px;line-height:2;color:#3B382F;max-width:860px}
+.p-story b{color:var(--green-deep)}
+
+/* 分类小标 */
+.cat-head{display:flex;align-items:center;gap:14px;margin:44px 0 18px}
+.cat-head i{font-family:var(--f-hand);font-size:14px;letter-spacing:2.5px;color:var(--green);font-style:normal;white-space:nowrap}
+.cat-head b{font-size:19px;letter-spacing:1px;white-space:nowrap}
+.cat-head span{flex:1;height:2px;background:repeating-linear-gradient(90deg,var(--ink) 0 9px,transparent 9px 17px);opacity:.5}
+.cat-head .eyes{display:flex;gap:5px;margin-left:4px}
+.cat-head .eyes i{width:16px;height:16px;border-radius:99px;background:#fff;border:2px solid var(--ink);position:relative;overflow:hidden}
+.cat-head .eyes i::after{content:"";position:absolute;left:4px;top:3px;width:6px;height:6px;border-radius:99px;background:var(--ink);animation:blinkEye 4.6s ease infinite}
+
+/* ============ 卡片 ============ */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+@media(max-width:960px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.cards{grid-template-columns:1fr}}
+.card{background:var(--paper);border:2px solid var(--ink);border-radius:var(--r);overflow:hidden;cursor:pointer;box-shadow:var(--shadow);transition:transform .28s cubic-bezier(.2,.9,.3,1.2),box-shadow .28s;position:relative}
+.card:hover{transform:translateY(-7px) rotate(-.4deg)}
+.card:nth-child(3n+2):hover{transform:translateY(-7px) rotate(.5deg)}
+.card .thumb{position:relative;aspect-ratio:16/10.6;overflow:hidden;background:#e8e4d8;border-bottom:2px solid var(--ink)}
+.card .thumb img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.2,.8,.3,1)}
+.card:hover .thumb img{transform:scale(1.06)}
+.card .thumb .badge{position:absolute;top:11px;left:11px;background:var(--yellow);border:1.5px solid var(--ink);border-radius:99px;padding:4px 12px;font-size:12px;font-weight:800;transform:rotate(-3deg);box-shadow:2px 2px 0 rgba(25,26,28,.85)}
+.card .thumb .badge.mag{background:var(--red);color:#fff}
+.card .thumb .badge.grn{background:var(--green);color:#fff}
+.card .thumb .badge.cy{background:var(--cyan);color:var(--ink)}
+.card .body{padding:17px 18px 15px}
+.card .body h4{font-size:16.5px;line-height:1.4;font-weight:800}
+.card .body h4 .yr{font-size:12px;color:var(--muted);font-weight:400;font-family:var(--f-disp);margin-left:6px}
+.card .body p{margin-top:8px;font-size:13.2px;line-height:1.75;color:#54503F}
+.card .tags{margin-top:12px;display:flex;gap:7px;flex-wrap:wrap}
+.card .tags span{font-size:11.5px;border:1.5px solid var(--ink);border-radius:99px;padding:3px 10px;background:var(--cream)}
+.card .more{border-top:2px solid var(--ink);padding:11px 18px;font-family:var(--f-hand);font-size:14.5px;letter-spacing:1px;color:var(--green-deep);background:var(--green-soft);transition:background .2s,color .2s}
+.card:hover .more{background:var(--green);color:#fff}
+.card .more::after{content:" →";transition:margin .25s}
+.card:hover .more::after{margin-left:5px}
+.card.wide{grid-column:span 2}
+@media(max-width:620px){.card.wide{grid-column:span 1}}
+
+/* ============ 证书墙（竞赛成绩） ============ */
+.cert-wall{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x proximity;padding:26px 6px 18px;scrollbar-width:thin}
+.cert{scroll-snap-align:center;flex:0 0 218px;background:var(--paper);border:2px solid var(--ink);border-radius:10px;padding:12px 12px 14px;box-shadow:var(--shadow-s);cursor:zoom-in;transform:rotate(var(--rot,0deg));transition:transform .25s}
+.cert:hover{transform:rotate(0) scale(1.05);z-index:2}
+.cert img{width:100%;height:250px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.cert .tape{width:78px;height:22px;margin:-24px auto 8px;background:rgba(255,212,59,.7);transform:rotate(-3deg);border-left:2px dashed rgba(25,26,28,.25);border-right:2px dashed rgba(25,26,28,.25)}
+.cert span{display:block;margin-top:10px;font-family:var(--f-cav);font-size:15.5px;color:#3B382F;text-align:center}
+
+/* ============ 胶片短片带 ============ */
+.filmzone{position:relative;margin:26px 0 8px;padding:34px 0 30px;background:var(--green-deep);border:2.5px solid var(--ink);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}
+.filmzone .fz-title{position:absolute;top:18px;left:0;right:0;text-align:center;z-index:5}
+.filmzone .fz-title span{font-family:var(--f-hand);color:#FFE9A8;font-size:clamp(16px,2.4vw,23px);letter-spacing:2px;background:rgba(12,79,42,.55);padding:4px 18px;border-radius:99px;border:1.5px dashed rgba(255,233,168,.55)}
+.filmzone .hint{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#C8EFD8;font-size:12.5px;letter-spacing:2px;z-index:5}
+.strip-wrap{position:relative;max-width:1100px;margin:0 auto;perspective:1100px;height:368px}
+.strip{position:absolute;inset:0;transform-style:preserve-3d}
+.fcard{position:absolute;top:66px;left:50%;width:330px;margin-left:-165px;border-radius:12px;overflow:hidden;background:#0A1410;border:2px solid #04120B;cursor:pointer;transition:transform .5s cubic-bezier(.25,.8,.3,1),opacity .5s,filter .5s;box-shadow:0 14px 34px rgba(0,0,0,.5);will-change:transform}
+.fcard img{width:100%;aspect-ratio:16/9.4;object-fit:cover;pointer-events:none}
+.fcard .fnum{position:absolute;top:8px;left:9px;background:rgba(0,0,0,.62);color:#FFE9A8;font-family:var(--f-disp);font-size:12px;padding:2px 9px;border-radius:6px;border:1px solid rgba(255,233,168,.4)}
+.fcard .ftitle{position:absolute;left:0;right:0;bottom:0;padding:26px 12px 9px;color:#fff;background:linear-gradient(transparent,rgba(2,10,6,.92));font-size:13.5px;font-weight:700;line-height:1.45}
+.fcard .ftitle small{display:block;font-weight:400;font-size:11px;color:#B9E8CC;margin-top:2px}
+.fcard .play{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transition:opacity .3s;background:rgba(2,14,8,.34)}
+.fcard .play i{width:54px;height:54px;border-radius:99px;background:var(--yellow);display:grid;place-items:center;font-style:normal;font-size:19px;border:2px solid var(--ink);transform:scale(.85);transition:transform .3s cubic-bezier(.2,.9,.3,1.4)}
+.fcard:hover .play{opacity:1}
+.fcard:hover .play i{transform:scale(1)}
+.fcard.nf{pointer-events:none;filter:saturate(.65)}
+.fnav{position:absolute;top:50%;transform:translateY(-50%);z-index:6;width:46px;height:46px;border-radius:99px;border:2px solid var(--ink);background:var(--yellow);cursor:pointer;display:grid;place-items:center;font-size:19px;box-shadow:var(--shadow-s);transition:transform .2s;color:var(--ink)}
+.fnav:hover{transform:translateY(-50%) scale(1.1)}
+.fnav.prev{left:calc(50% - 560px)}
+.fnav.next{right:calc(50% - 560px)}
+@media(max-width:1160px){.fnav.prev{left:8px}.fnav.next{right:8px}}
+.sprocket{position:absolute;left:0;right:0;height:22px;background:#04120B;z-index:4;display:flex;align-items:center;overflow:hidden}
+.sprocket::before{content:"";flex:1;height:0;border-top:4px dotted #1E4A34}
+.sprocket.top{top:0}.sprocket.bot{bottom:0}
+@media(max-width:700px){.strip-wrap{height:310px}.fcard{width:250px;margin-left:-125px;top:46px}}
+
+/* ============ 跑马灯 ============ */
+.marq{overflow:hidden;white-space:nowrap;border-top:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink);background:var(--green);color:#F4FFF7;margin-top:64px;transform:rotate(-.6deg) scale(1.02)}
+.marq .track{display:inline-flex;animation:marquee 26s linear infinite;padding:12px 0}
+.marq span{font-family:var(--f-disp);font-weight:800;font-size:15.5px;letter-spacing:2.5px;padding:0 22px}
+.marq em{font-style:normal;color:var(--yellow)}
+.marq:hover .track{animation-play-state:paused}
+
+/* ============ 页脚联系 ============ */
+.contact{max-width:1220px;margin:0 auto;padding:70px 22px 46px}
+.contact .c-grid{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end}
+@media(max-width:760px){.contact .c-grid{grid-template-columns:1fr}}
+.contact h2{font-size:clamp(30px,4.6vw,54px);font-weight:800;letter-spacing:-1px;line-height:1.12}
+.contact h2 em{font-style:normal;color:var(--green);font-family:var(--f-hand)}
+.contact .say{font-family:var(--f-cav);font-size:21px;color:var(--muted);margin-top:12px}
+.contact .chips{display:flex;gap:14px;flex-wrap:wrap}
+.contact .chip{background:var(--paper);border:2px solid var(--ink);border-radius:99px;padding:13px 22px;font-size:14px;font-weight:700;box-shadow:var(--shadow-s);display:flex;align-items:center;gap:9px}
+.contact .chip i{font-style:normal;width:24px;height:24px;border-radius:99px;background:var(--green);color:#fff;display:grid;place-items:center;font-size:12px}
+footer{border-top:2.5px solid var(--ink);background:var(--ink);color:#8f8d84;margin-top:30px}
+footer .in{max-width:1220px;margin:0 auto;padding:26px 22px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:12.5px}
+footer b{color:var(--cream);font-family:var(--f-disp)}
+
+/* ============ 故事弹窗（纸质） ============ */
+#story{position:fixed;inset:0;z-index:300;background:rgba(25,26,28,.55);backdrop-filter:blur(5px);display:none;align-items:flex-start;justify-content:center;padding:5vh 16px}
+#story.on{display:flex}
+.st-panel{background:var(--paper);border:2.5px solid var(--ink);border-radius:20px;max-width:860px;width:100%;max-height:90vh;overflow-y:auto;position:relative;box-shadow:10px 10px 0 rgba(25,26,28,.35);scrollbar-width:thin}
+.st-panel .st-close{position:sticky;top:14px;margin:14px 14px 0 auto;z-index:9;display:grid;place-items:center;width:42px;height:42px;border-radius:99px;background:var(--red);color:#fff;border:2px solid var(--ink);font-size:17px;cursor:pointer;box-shadow:var(--shadow-s);float:right}
+#stBody{padding:0 34px 40px}
+#stBody h1{font-size:clamp(26px,3.6vw,40px);font-weight:800;letter-spacing:-.5px;margin-top:26px;line-height:1.2}
+#stBody h1 em{font-style:normal;color:var(--green)}
+#stBody .st-sub{margin-top:9px;font-size:14px;color:var(--muted)}
+#stBody .st-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+#stBody .st-tags span{font-size:12px;border:1.5px solid var(--ink);border-radius:99px;padding:3px 11px;background:var(--cream)}
+#stBody .st-hero{margin-top:24px;border:2px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-s);position:relative}
+#stBody .st-hero img{width:100%}
+#stBody .quote{margin-top:26px;font-family:var(--f-cav);font-size:clamp(20px,2.6vw,27px);color:var(--green-deep);line-height:1.55;position:relative;padding-left:18px;border-left:4px solid var(--yellow)}
+#stBody h2{margin-top:34px;font-size:19px;display:flex;align-items:center;gap:10px}
+#stBody h2::before{content:"";width:13px;height:13px;background:var(--green);border:2px solid var(--ink);border-radius:4px;transform:rotate(-6deg)}
+#stBody p{margin-top:13px;font-size:14.5px;line-height:2.05;color:#37342B}
+#stBody .gal{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px;align-items:start}
+#stBody .gal figure.wide{grid-column:1/-1}
+@media(max-width:620px){#stBody .gal{grid-template-columns:1fr}}
+#stBody .gal figure{border:2px solid var(--ink);border-radius:10px;overflow:hidden;background:#fff;cursor:zoom-in}
+#stBody .gal img{width:100%;cursor:zoom-in}
+#stBody .gal figcaption{font-size:11.5px;color:var(--muted);padding:8px 11px;border-top:1.5px solid var(--line)}
+#stBody .award-row{margin-top:14px;display:grid;gap:9px}
+#stBody .award-row span{background:var(--green-soft);border:1.5px solid var(--ink);border-radius:9px;padding:9px 13px;font-size:13px}
+#stBody .award-row b{color:var(--green-deep)}
+#stBody .video-box{margin-top:24px;border:2px solid var(--ink);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-s)}
+#stBody .video-box video{width:100%;display:block}
+#stBody .fact{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:18px}
+#stBody .fact div{border:2px solid var(--ink);border-radius:10px;padding:12px;background:var(--cream)}
+#stBody .fact i{font-style:normal;font-size:11px;letter-spacing:1px;color:var(--muted);display:block}
+#stBody .fact b{font-size:16px}
+#stBody .launch-big{margin-top:28px;border:2.5px solid var(--ink);background:var(--green-deep);border-radius:16px;padding:26px;display:flex;align-items:center;gap:18px;justify-content:space-between;flex-wrap:wrap;box-shadow:var(--shadow)}
+#stBody .launch-big .t1{color:#FFE9A8;font-family:var(--f-hand);font-size:18px}
+#stBody .launch-big .t2{color:#fff;font-size:19px;font-weight:800;margin-top:6px}
+#stBody .launch-big a{background:var(--yellow);color:var(--ink);font-family:var(--f-disp);font-weight:800;text-decoration:none;border:2px solid var(--ink);border-radius:99px;padding:13px 26px;font-size:15px;box-shadow:var(--shadow-s);transition:transform .2s}
+#stBody .launch-big a:hover{transform:translateY(-3px) rotate(-1.5deg)}
+#stBody .ext-links{margin-top:14px;display:grid;gap:10px}
+#stBody .ext-links a{display:flex;gap:10px;align-items:center;text-decoration:none;border:2px solid var(--ink);border-radius:10px;padding:11px 14px;font-size:13.5px;background:#fff;transition:transform .2s}
+#stBody .ext-links a:hover{transform:translateX(5px)}
+#stBody .ext-links b{background:var(--yellow);border-radius:6px;padding:2px 8px;font-size:11px}
+
+/* ============ 视频弹窗 ============ */
+#filmModal{position:fixed;inset:0;z-index:320;background:rgba(10,12,10,.88);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px}
+#filmModal.on{display:flex}
+#filmModal .fm-panel{max-width:940px;width:100%}
+#filmModal .fm-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+#filmModal .fm-title{color:#fff;font-weight:800;font-size:16.5px}
+#filmModal .fm-sub{color:#9BD8B4;font-size:12.5px;font-family:var(--f-hand);letter-spacing:1px}
+#filmModal .fm-close{margin-left:auto;background:var(--red);color:#fff;border:2px solid #fff;border-radius:99px;width:38px;height:38px;font-size:15px;cursor:pointer}
+#filmModal video{width:100%;border-radius:12px;border:2px solid rgba(255,255,255,.6);background:#000;max-height:76vh}
+#filmModal .fm-navs{display:flex;gap:12px;margin-top:12px;justify-content:center}
+#filmModal .fm-navs button{background:var(--yellow);border:2px solid var(--ink);border-radius:99px;padding:9px 20px;font-weight:800;cursor:pointer;font-size:13.5px;box-shadow:var(--shadow-s)}
+#filmModal .fm-navs button:hover{transform:translateY(-2px)}
+
+/* ============ 3D 实验室 ============ */
+#lab3d{position:fixed;inset:0;z-index:330;background:rgba(6,16,10,.93);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:18px}
+#lab3d.on{display:flex}
+#lab3d .lab-panel{position:relative;width:min(880px,94vw);height:min(640px,86vh);border:2.5px solid var(--ink);border-radius:20px;overflow:hidden;background:#0A1810;box-shadow:12px 12px 0 rgba(0,0,0,.4)}
+#lab3d canvas{display:block;width:100%;height:100%}
+#lab3d .lab-tag{position:absolute;top:14px;left:16px;color:#FFE9A8;font-family:var(--f-hand);font-size:19px;letter-spacing:1px;z-index:5;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+#lab3d .lab-hint{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#8fd8b0;font-size:12px;letter-spacing:2px;z-index:5}
+#lab3d .lab-close{position:absolute;top:12px;right:12px;z-index:6;width:42px;height:42px;border-radius:99px;background:var(--red);color:#fff;border:2px solid var(--ink);font-size:16px;cursor:pointer}
+#lab3d .lab-load{position:absolute;inset:0;display:grid;place-items:center;color:#BFEAD2;font-family:var(--f-hand);font-size:22px;z-index:4}
+#lab3d .lab-spin{position:absolute;top:50%;left:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border:4px solid rgba(255,233,168,.25);border-top-color:#FFE9A8;border-radius:99px;animation:spin 1s linear infinite;z-index:5}
+
+/* ============ 灯箱 ============ */
+#lightbox{position:fixed;inset:0;z-index:400;background:rgba(246,243,236,.97);display:none;align-items:center;justify-content:center;padding:4vw;cursor:zoom-out}
+#lightbox.on{display:flex}
+#lightbox img{max-width:94vw;max-height:90vh;border:2.5px solid var(--ink);border-radius:10px;box-shadow:12px 12px 0 rgba(25,26,28,.16);background:var(--paper)}
+#lightbox .lb-cap{position:fixed;bottom:26px;left:0;right:0;text-align:center;font-family:var(--f-cav);font-size:19px;color:var(--muted)}
+
+/* ============ 无障碍降级 ============ */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  .rv{opacity:1;transform:none}
+}
+
+/* ============ 全局极光深色底（v3.1） ============ */
+html{background:#04101c}
+body{background:transparent;--shadow:4px 4px 0 rgba(255,255,255,.85);--shadow-s:3px 3px 0 rgba(255,255,255,.8)}
+#aurora{position:fixed;inset:0;width:100%;height:100%;z-index:-1}
+.hero{background:transparent}
+.webgl-fallback{position:fixed}
+.nav.scrolled{background:rgba(4,13,22,.88);border-color:rgba(255,255,255,.3)}
+.nav.scrolled .logo,.nav.scrolled .links a{color:#fff}
+.nav .cta{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.55)}
+.hi-kicker{color:#3ddc84}
+.prof-copy h2{color:#fff}
+.prof-copy h2 .circ{color:#7CFFD8}
+.prof-copy .lead{color:#c9d6cd}
+.prof-copy .lead b{color:#fff}
+.prof-copy .lead .g{color:#7CFFD8}
+.prof-photo .blob,.prof-photo .sticker,.prof-photo .sticker2{border-color:#fff}
+.sec-head h2{color:#fff}
+.sec-head h2 i{color:#3ddc84}
+.sec-head .p-num{-webkit-text-stroke-color:rgba(255,255,255,.9)}
+.sec-head .p-meta{color:#9db3a6}
+.p-story{color:#c9d6cd}
+.p-story b{color:#7CFFD8}
+.cat-head b{color:#fff}
+.cat-head i{color:#3ddc84}
+.cat-head span{background:repeating-linear-gradient(90deg,rgba(255,255,255,.75) 0 9px,transparent 9px 17px)}
+.cat-head .eyes i{border-color:#fff}
+.card,.cert,.stat,.chip,.fnav,.filmzone{border-color:rgba(255,255,255,.85)}
+.card .thumb{border-bottom-color:rgba(255,255,255,.85)}
+.card .more{border-top-color:rgba(255,255,255,.85)}
+.marq{border-color:rgba(255,255,255,.85)}
+.tline{border-top-color:rgba(255,255,255,.85)}
+.tline .tl-title{color:#fff}
+.trow{border-bottom-color:rgba(255,255,255,.22)}
+.trow .yr{color:#6EE7A8}
+.trow .wh{color:#F1F6F1}
+.trow .wh small{color:#9db3a6}
+.trow .dot::before{border-color:#fff}
+.contact h2{color:#fff}
+.contact .say{color:#9db3a6}
+footer{background:#02090f;border-top-color:rgba(255,255,255,.3)}
+#lightbox{background:rgba(2,10,16,.96)}
+#lightbox img{border-color:rgba(255,255,255,.85)}
+#lightbox .lb-cap{color:#b9c9be}
+/* 弹窗内部保持纸质暖色观感，阴影恢复深色 */
+#story,#filmModal{--shadow:4px 4px 0 rgba(25,26,28,.9);--shadow-s:3px 3px 0 rgba(25,26,28,.85)}
+
+</style>
+</head>
+<body>
+
+<!-- ================= 导航 ================= -->
+<nav class="nav on-hero" id="nav">
+  <div class="in">
+    <span class="logo" onclick="scrollTo({top:0,behavior:'smooth'})"><span class="mark">Y</span>YANCY&nbsp;TAN<span style="color:var(--green)">*</span></span>
+    <div class="links">
+      <a onclick="goSec('#profile')">概况</a>
+      <a onclick="goSec('#teaching')">从教时期</a>
+      <a onclick="goSec('#career')">职业设计</a>
+      <a onclick="goSec('#undergrad')">早期作品</a>
+      <a onclick="goSec('#contact')">联系</a>
+    </div>
+    <a class="cta" onclick="goSec('#teaching')">看作品 →</a>
+  </div>
+</nav>
+
+<!-- ================= 极光 Hero ================= -->
+<section class="hero" id="hero">
+  <canvas id="aurora"></canvas>
+  <div class="webgl-fallback" id="fb"></div>
+  <div class="veil"></div>
+  <div class="hero-inner">
+    <span class="hero-tag"><i></i>数字媒体艺术教师 · AIGC 教学实践者<i></i></span>
+    <h1><span class="w1">YANCY</span> <span class="w2"><em>TAN</em></span></h1>
+    <div class="cn">谭 雅 茜</div>
+    <p>把 <b>AIGC</b> 带进课堂，把课堂带进真实世界——<br>教学生用 AI 复原 230 岁客家围屋、拍微电影、拿国家级奖项。</p>
+    <a class="scroll-cue" onclick="goSec('#profile')"><span>SCROLL</span><i>↓</i></a>
+  </div>
+  <div class="hint">← move mouse · click →</div>
+</section>
+
+<!-- ================= 简历概况 ================= -->
+<section class="profile" id="profile">
+  <div class="hi-kicker rv">HI, I'M YANCY <span class="arr">↓</span></div>
+  <div class="prof-grid">
+    <div class="prof-photo rv pop" style="--rot:-2deg">
+      <div class="blob"><img src="assets/photo_me.jpg" alt="谭雅茜"></div>
+      <div class="tape"></div>
+      <span class="sticker">Based in 深圳 ✓</span>
+      <span class="sticker2">AIGC 教学者</span>
+    </div>
+    <div class="prof-copy">
+      <div class="rv-copy" id="profCopy">
+        <h2>我教<span class="circ">数字媒体艺术<svg viewBox="0 0 200 60" preserveAspectRatio="none"><path d="M8,34 C40,10 70,52 100,30 S160,12 192,32" style="--len:340"/></svg></span>，<br>也陪学生把 <span class="uline">AI 用到飞起</span>。</h2>
+      </div>
+      <p class="lead rv">谭雅茜（Yancy），深圳市携创高级技工学校 <b>数字媒体艺术专业教师 · 艺术设计工作室负责人 · 学生竞赛负责人</b>。风景园林硕士出身，五年景观与室内设计企业历练后转入讲台，如今把 <span class="g">AIGC 工具链、Python 编程、TouchDesigner 交互、无人机航拍</span> 全部搬进课堂。主持的 <b>AI 复原茂盛世居客家围屋</b> 项目被深圳卫视等 5 家媒体报道；带领 AIGC 社团创作微电影短片 30+ 部；指导学生拿下全国职业院校技能大赛一等奖、美国新星设计奖、缪斯设计奖等 40+ 个国内外奖项。</p>
+      <div class="stats">
+        <div class="stat rv"><span class="ico">✏</span><b><span data-count="4">0</span><i> 年</i></b><span>从教经历</span></div>
+        <div class="stat rv"><span class="ico">🏆</span><b><span data-count="40">0</span><i>+</i></b><span>指导学生获奖</span></div>
+        <div class="stat rv"><span class="ico">🎬</span><b><span data-count="30">0</span><i>+</i></b><span>AIGC 社团短片</span></div>
+        <div class="stat rv"><span class="ico">📺</span><b><span data-count="5">0</span><i> 家</i></b><span>媒体报道</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="tline rv">
+    <div class="tl-title"><span class="doodle-star">✦</span>时间线 —— 从现在倒着往回看</div>
+    <div class="rows">
+      <div class="trow"><span class="yr">2024—今</span><span class="dot"></span><span class="wh">深圳市携创高级技工学校 · 数字媒体艺术教师 + 艺术设计工作室负责人 + 竞赛负责人 + 毕业设计总负责<small>全年级毕业设计主导教师 · 答辩主考 / AI 社团 / AIGC 微电影工坊 / 非遗数字化教学案例研发 / WorkBuddy 智能体教学平台</small></span></div>
+      <div class="trow"><span class="yr">2022—2024</span><span class="dot"></span><span class="wh">广东省华立技师学院 · 数字媒体艺术专业教师 · 院长助理</span></div>
+      <div class="trow"><span class="yr">2019—2022</span><span class="dot"></span><span class="wh">前海源点建筑设计 LOCUS ASSOCIATES · 景观设计师 × 室内设计团队<small>越秀星汇湾四天中标 · 巴黎 NDA 城市规划与景观金奖 · 新加坡/泰国/深圳高端住宅室内</small></span></div>
+      <div class="trow"><span class="yr">2017—2018</span><span class="dot"></span><span class="wh">东北林业大学 · 风景园林硕士<small>绍兴古城保护发展城市设计（清华同衡项目）· 樟木头城市更新</small></span></div>
+      <div class="trow"><span class="yr">2016—2017</span><span class="dot"></span><span class="wh">北京汉通建筑规划设计（西安）· 景观设计助理<small>地产景观项目实践</small></span></div>
+      <div class="trow"><span class="yr">2012—2016</span><span class="dot"></span><span class="wh">西安科技大学高新学院 · 环境艺术设计学士<small>「行走」毕业课题 · CIID 设计艺术展金奖</small></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 01 从教时期 ================= -->
+<section class="sec" id="teaching">
+  <div class="sec-head">
+    <div class="p-num rv">01</div>
+    <div class="rv"><h2>从教时期<i>TEACHING · 2022 — NOW</i></h2></div>
+    <div class="p-meta rv">广东省华立技师学院 → 深圳市携创高级技工学校 · 艺术设计工作室负责人 / 学生竞赛负责人 —— 课堂、片场、领奖台，三个现场我都盯。</div>
+  </div>
+
+  <!-- A. 课件与新闻 -->
+  <div class="cat-head rv"><i>COURSEWARE &amp; NEWS</i><b>从教课件 · 新闻报道</b><span></span></div>
+  <div class="cards">
+    <div class="card rv" data-story="maosheng">
+      <div class="thumb"><span class="badge mag">5 家媒体报道</span><img src="assets_media/wx_maosheng/img00.jpg" alt="茂盛世居"></div>
+      <div class="body"><h4>茂盛世居 · AI 数字孪生复原 <span class="yr">2025</span></h4>
+      <p>带学生用 AI 复原 230 岁客家围屋，深圳卫视、湾区晚报、羊城晚报等 5 家媒体报道的明星教学案例</p>
+      <div class="tags"><span>AI 数字孪生</span><span>文化遗产</span><span>项目式教学</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="dunhuang">
+      <div class="thumb"><span class="badge grn">交互课件</span><img src="assets/work_dunhuang.jpg" alt="敦煌课件"></div>
+      <div class="body"><h4>沙漠里的文明 · 走进敦煌莫高窟 <span class="yr">2025</span></h4>
+      <p>自研 720° 全景 VR 课件——四大展区 + 285 号窟真实影像 + 画中人苏醒交互，一键进入完整课件</p>
+      <div class="tags"><span>VR 课件</span><span>Three.js</span><span>自研</span></div></div>
+      <div class="more">READ STORY · ENTER</div>
+    </div>
+    <div class="card rv" data-story="shikong">
+      <div class="thumb"><span class="badge grn">交互课件</span><img src="assets/work_shikong.jpg" alt="时空裂缝"></div>
+      <div class="body"><h4>时空裂缝 · 物理规律验证官 <span class="yr">2025</span></h4>
+      <p>把物理定律做成可交互的网页实验——重力、单摆、光的折射，学生在浏览器里「玩」出考点</p>
+      <div class="tags"><span>物理实验</span><span>Canvas</span><span>游戏化</span></div></div>
+      <div class="more">READ STORY · ENTER</div>
+    </div>
+    <div class="card rv" data-story="ai_teach">
+      <div class="thumb"><span class="badge cy">AI 教学全景</span><img src="assets/ppt/ai_t05.jpg" alt="AI教学应用"></div>
+      <div class="body"><h4>AI 教学应用全景图 <span class="yr">2024—2026</span></h4>
+      <p>AI 智能体助教、数字人微课、AIGC 意向图、VR/AR 虚拟互动、数字孪生——十张图看懂课堂里的 AI</p>
+      <div class="tags"><span>智能体助教</span><span>数字人微课</span><span>AR/VR</span></div></div>
+      <div class="more">READ STORY</div>
+    </div><div class="card rv" data-story="touchdesigner">
+      <div class="thumb"><span class="badge">TouchDesigner</span><img src="assets/pages/pg_p22.jpg" alt="TouchDesigner"></div>
+      <div class="body"><h4>TouchDesigner 交互课堂 <span class="yr">2024—2026</span></h4>
+      <p>LED 相位阵列、ArtNet 灯光、粒子系统——把数字媒体专业的「代码恐惧症」治好的那门课</p>
+      <div class="tags"><span>交互艺术</span><span>实时渲染</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+  </div>
+
+  <!-- B. 竞赛成绩 -->
+  <div class="cat-head rv"><i>AWARDS WALL</i><b>竞赛成绩</b><span></span><span class="eyes"><i></i><i></i></span></div>
+  <div class="cards">
+    <div class="card rv" data-story="jingsai">
+      <div class="thumb"><span class="badge mag">国赛一等奖</span><img src="assets/ppt/award_03.jpg" alt="全国技能大赛"></div>
+      <div class="body"><h4>学生竞赛指导成果 <span class="yr">2023—2026</span></h4>
+      <p>全国职业院校技能大赛一等奖、美国新星设计奖、缪斯设计奖、EPACC、G-CROSS……竞赛工作室的奖杯墙</p>
+      <div class="tags"><span>国赛一等奖</span><span>国际奖项</span><span>40+</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="bishe">
+      <div class="thumb"><span class="badge">毕设总负责</span><img src="assets/ppt/bishe_01.jpg" alt="毕业设计指导"></div>
+      <div class="body"><h4>毕业设计总负责人 <span class="yr">2023—2026</span></h4>
+      <p>连续两年全年级毕设主导教师 + 答辩主考——模拟评审制度让每个学生都被「评委」追问过 N 遍</p>
+      <div class="tags"><span>毕业设计</span><span>模拟评审</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv pop" style="--rot:-1.4deg" data-story="aigc_art">
+      <div class="thumb"><span class="badge cy">本人作品</span><img src="assets/ppt/art_01.jpg" alt="AIGC艺术绘图"></div>
+      <div class="body"><h4>本人 AIGC 艺术绘图 <span class="yr">2023—2026</span></h4>
+      <p>教师的示范作品库——古风分镜、浮世绘再演绎、概念场景，每一张都是课堂的「活教材」</p>
+      <div class="tags"><span>AIGC 绘图</span><span>示范作品</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+  </div>
+  <div class="cert-wall rv" id="certWall">
+    <div class="cert" style="--rot:-2deg"><div class="tape"></div><img src="assets/ppt/award_05.jpg" alt="美国新星设计奖证书"><span>美国新星设计奖</span></div>
+    <div class="cert" style="--rot:1.5deg"><div class="tape"></div><img src="assets/ppt/award_milan.jpg" alt="米兰国际艺术设计奖证书"><span>米兰国际艺术设计奖 · 获奖证书</span></div>
+    <div class="cert" style="--rot:-1deg"><div class="tape"></div><img src="assets/ppt/award_07.jpg" alt="获奖海报"><span>获奖作品海报</span></div>
+    <div class="cert" style="--rot:2deg"><div class="tape"></div><img src="assets/ppt/award_08.jpg" alt="国际奖项证书"><span>国际赛事证书</span></div>
+    <div class="cert" style="--rot:-2.4deg"><div class="tape"></div><img src="assets/ppt/award_09.jpg" alt="EPACC证书"><span>EPACC 国际环艺设计大赛</span></div>
+    <div class="cert" style="--rot:1.2deg"><div class="tape"></div><img src="assets/ppt/award_01.jpg" alt="短视频大赛证书"><span>AI 创意短视频大赛 · 二等奖</span></div>
+    <div class="cert" style="--rot:-1.6deg"><div class="tape"></div><img src="assets/ppt/award_10.jpg" alt="学院奖作品"><span>广东省学院奖 · 一等奖</span></div>
+    <div class="cert" style="--rot:2.2deg"><div class="tape"></div><img src="assets/ppt/award_12.jpg" alt="选拔赛作品"><span>广东省选拔赛作品</span></div>
+  </div>
+
+  <!-- C. AIGC 社团短片 -->
+  <div class="cat-head rv"><i>AIGC FILM CLUB</i><b>AIGC 社团短片</b><span></span></div>
+  <div class="filmzone rv">
+    <div class="sprocket top"></div>
+    <div class="fz-title"><span>✦ 我和学生一起拍的 AIGC 微电影 ✦</span></div>
+    <div class="strip-wrap" id="stripWrap">
+      <div class="strip" id="strip"></div>
+      <button class="fnav prev" id="fprev" onclick="filmMove(-1)">‹</button>
+      <button class="fnav next" id="fnext" onclick="filmMove(1)">›</button>
+    </div>
+    <div class="sprocket bot"></div>
+    <div class="hint">CLICK FRAME TO PLAY · ← → TO BROWSE</div>
+  </div>
+
+  <!-- D. AIGC IP -->
+  <div class="cat-head rv"><i>AIGC IP LAB</i><b>AIGC IP 设计</b><span></span><span class="eyes"><i></i><i></i></span></div>
+  <div class="cards">
+    <div class="card rv pop" style="--rot:-1.2deg" data-story="starcat">
+      <div class="thumb"><span class="badge grn">3D 可旋转</span><img src="assets/ip/starcat_1.jpg" alt="星星猫IP"></div>
+      <div class="body"><h4>星星猫 · 儿童数字 IP <span class="yr">2025</span></h4>
+      <p>专给自卑症儿童设计的数字 IP——星云猫、彩虹底座、手稿到 3D 全链路，还能在线转 3D 模型</p>
+      <div class="tags"><span>社会关怀</span><span>3D</span><span>全链路</span></div></div>
+      <div class="more">READ STORY · 3D</div>
+    </div>
+    <div class="card rv" data-story="nezha">
+      <div class="thumb"><span class="badge">盲盒企划</span><img src="assets/ip/nezha_hero.jpg" alt="哪吒IP盲盒"></div>
+      <div class="body"><h4>哪吒 AIGC IP 盲盒 <span class="yr">2025</span></h4>
+      <p>从 AIGC 角色生成到盲盒企划九连页——隐藏款、工艺细节、开盒体验，一套完整 IP 商业化方案</p>
+      <div class="tags"><span>盲盒企划</span><span>AIGC 角色</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="avatar_ip">
+      <div class="thumb"><span class="badge mag">教师分身</span><img src="assets/ip/avatar_ip2.jpg" alt="教师数字人"></div>
+      <div class="body"><h4>本人教师数字人 IP <span class="yr">2025</span></h4>
+      <p>把「谭老师」做成数字人——微课口播、AI 助教、招生宣传多场景复用的专属形象</p>
+      <div class="tags"><span>数字人</span><span>AI 助教</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="ip_rest">
+      <div class="thumb"><span class="badge cy">空间 IP</span><img src="assets/ip/ip_lion.jpg" alt="醒狮赛博IP"></div>
+      <div class="body"><h4>空间 IP 设计集 <span class="yr">2024—2025</span></h4>
+      <p>赛博醒狮、英歌小武者、小鲸、围屋守护神小茂盛——给真实商业空间定制的 IP 家族</p>
+      <div class="tags"><span>商业定制</span><span>吉祥物</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+  </div>
+</section>
+
+<div class="marq rv" aria-hidden="true">
+  <div class="track" id="mq1">
+    <span>DUNHUANG VR <em>✱</em></span><span>MOGAO CAVE 285 <em>✱</em></span><span>AI DIGITAL TWIN <em>✱</em></span><span>AIGC FILM <em>✱</em></span><span>TOUCHDESIGNER <em>✱</em></span><span>MAO SHENG JU <em>✱</em></span><span>STAR CAT IP <em>✱</em></span><span>NEZHA BLIND BOX <em>✱</em></span>
+  </div>
+</div>
+<!-- ================= 02 职业设计生涯 ================= -->
+<section class="sec" id="career">
+  <div class="sec-head">
+    <div class="p-num rv">02</div>
+    <div class="rv"><h2>职业设计生涯<i>PROFESSIONAL · 2016—2017 / 2019—2022</i></h2></div>
+    <div class="p-meta rv">北京汉通建筑规划设计（西安）→ 前海源点建筑设计 LOCUS ASSOCIATES · 景观设计师 × 室内设计团队</div>
+  </div>
+  <p class="p-story rv">五年职业设计生涯，从地产景观、文旅小镇到高端室内。在 LOCUS 的日子里，我尝试过把<b>赛博朋克</b>植入建筑景观（合肥空港小镇·未来实验室），在「新禅式温泉度假目的地」里提炼莲花语言，最骄傲的一战是越秀星汇湾——<b>四天，中标</b>。室内方向则以团队协作完成了新加坡、泰国与深圳的高端住宅项目。2021 年，团队作品获得法国巴黎 NDA 城市规划与景观类金奖。</p>
+  <div class="cat-head rv"><i>LANDSCAPE &amp; PLANNING</i><b>景观与规划</b><span></span></div>
+  <div class="cards">
+    <div class="card rv wide" data-story="gangkou">
+      <div class="thumb"><span class="badge">OCT 华侨城 · 未来实验室</span><img src="assets/pages/mg_p10.jpg" alt="空港小镇"></div>
+      <div class="body"><h4>合肥空港小镇 · 未来实验室 <span class="yr">2020-21</span></h4>
+      <p>把赛博朋克植入建筑景观——未来核、双环道步行系统、飞行艺术街区与生态雨水花园构成的航空文创科技互动生态智谷</p>
+      <div class="tags"><span>城市设计</span><span>文旅小镇</span><span>概念规划</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="yingde">
+      <div class="thumb"><span class="badge">新禅式</span><img src="assets/pages/mg_p12.jpg" alt="英德温泉"></div>
+      <div class="body"><h4>英德观音山温泉度假村售楼部 <span class="yr">2020</span></h4>
+      <p>「隐世禅意」——以莲花为主线，打造珠三角首个新禅式体验温泉度假目的地</p>
+      <div class="tags"><span>地产景观</span><span>新中式禅意</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="wanxiang">
+      <div class="thumb"><img src="assets/pages/mg_p13.jpg" alt="万象天地"></div>
+      <div class="body"><h4>汕尾华润万象天地 C 地块 <span class="yr">2021</span></h4>
+      <p>「时间脉动，空间交融」——软化方正冰冷的都市居住空间，创造东方韵味的积极空间</p>
+      <div class="tags"><span>地产景观</span><span>居住空间</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="xinghuiwan">
+      <div class="thumb"><span class="badge mag">4 天中标</span><img src="assets/pages/mg_p15.jpg" alt="越秀星汇湾"></div>
+      <div class="body"><h4>越秀星汇湾景观设计 <span class="yr">2021</span></h4>
+      <p>项目周期极短的竞标战——四天完成方案并成功中标</p>
+      <div class="tags"><span>竞标</span><span>高效率</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="taohuayuan">
+      <div class="thumb"><span class="badge">酒店景观</span><img src="assets/pages/mg_p03.jpg" alt="桃花源酒店"></div>
+      <div class="body"><h4>上犹桃花源度假酒店景观内庭 <span class="yr">2017-18</span></h4>
+      <p>「山水印炼」——把桃花源的美好山水印炼为一种语言，营造归隐自然的雅致空间</p>
+      <div class="tags"><span>酒店景观</span><span>新中式</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+  </div>
+  <div class="cat-head rv"><i>INTERIOR</i><b>室内设计</b><span></span></div>
+  <div class="cards">
+    <div class="card rv" data-story="holland">
+      <div class="thumb"><span class="badge mag">团队成果</span><img src="assets/pages/in_p05.jpg" alt="新加坡荷兰公寓"></div>
+      <div class="body"><h4>新加坡 · 荷兰公寓 <span class="yr">2020</span></h4>
+      <p>Holland Loft 高端住宅室内——客餐厨一体化的现代日式极简，浅木饰面与隐藏灯带贯穿全屋</p>
+      <div class="tags"><span>室内设计</span><span>海外住宅</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="phuket">
+      <div class="thumb"><span class="badge mag">团队成果</span><img src="assets/pages/in_p18.jpg" alt="普吉岛Kamala"></div>
+      <div class="body"><h4>泰国 · 普吉岛 Kamala 海滩宅 <span class="yr">2017</span></h4>
+      <p>度假宅邸室内与公区——花格砖、龟背竹与球状吊灯，被「设计」出来的热带度假感</p>
+      <div class="tags"><span>室内设计</span><span>度假空间</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="xiangshan">
+      <div class="thumb"><span class="badge mag">团队成果</span><img src="assets/pages/in_p35.jpg" alt="深圳香山美墅"></div>
+      <div class="body"><h4>深圳 · 香山美墅 7H <span class="yr">2020</span></h4>
+      <p>豪宅室内方案——超跑车库会所、挑高音乐客厅与大理石主景的现代轻奢</p>
+      <div class="tags"><span>室内设计</span><span>豪宅</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03 硕士时期 ================= -->
+<section class="sec" id="master">
+  <div class="sec-head">
+    <div class="p-num rv">03</div>
+    <div class="rv"><h2>硕士时期<i>MASTER · 2017—2018</i></h2></div>
+    <div class="p-meta rv">东北林业大学 · 风景园林硕士——把「画画的手」升级成「读城市的眼」</div>
+  </div>
+  <p class="p-story rv">从艺术设计转向风景园林，是把「画画的手」升级成「读城市的眼」。硕士阶段我在清华同衡的国企项目里学会用 <b>GIS 读懂一座古城的肌理</b>——绍兴古城保护发展城市设计，是我第一次参与真正的城市级课题。</p>
+  <div class="cards">
+    <div class="card rv" data-story="shaoxing">
+      <div class="thumb"><span class="badge">清华同衡实习</span><img src="assets/pages/mg_p17.jpg" alt="绍兴古城"></div>
+      <div class="body"><h4>绍兴古都保护发展城市设计 <span class="yr">2018</span></h4>
+      <p>古城前期调研、数据采集、GIS 分析与总体结构制作——用数据讲述绍兴故事</p>
+      <div class="tags"><span>城市设计</span><span>GIS 分析</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="zhangmutou">
+      <div class="thumb"><img src="assets/pages/mg_p18.jpg" alt="樟木头森林公园"></div>
+      <div class="body"><h4>广东东莞樟木头森林公园 <span class="yr">2018</span></h4>
+      <p>依托国有林场改建森林公园——「十里油茶林 · 十里茶花吟」与六条科普教育径</p>
+      <div class="tags"><span>市政景观</span><span>森林康养</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 本科时期 ================= -->
+<section class="sec" id="undergrad">
+  <div class="sec-head">
+    <div class="p-num rv">04</div>
+    <div class="rv"><h2>本科时期<i>UNDERGRAD · 2012—2016</i></h2></div>
+    <div class="p-meta rv">西安科技大学高新学院 · 环境艺术设计学士——毕业作品集的名字叫《行走》</div>
+  </div>
+  <p class="p-story rv">毕业作品集的名字叫《行走》。四年里我把黄土高原的窑洞聚落、大汉山顶的祈福广场、幼儿园的彩色立面都走了一遍——用脚调研，用笔思考。大三那年的 CIID 设计艺术展，「归·巢」生土窑洞社区方案拿回<b>金奖</b>、宝氮幼儿园拿回<b>人文关怀奖</b>，那是「行走」第一次被行业看见。</p>
+  <div class="cards">
+    <div class="card rv" data-story="shengtu">
+      <div class="thumb"><span class="badge">CIID 金奖</span><img src="assets/pages/ug_gchero.jpg" alt="归巢"></div>
+      <div class="body"><h4>归 · 巢——生土聚落未来社区 <span class="yr">2012-13</span></h4>
+      <p>「归·巢」——黄土高原生土窑洞社区规划设计：调研、理论、概念、空间图式四篇递进，一套完整展板</p>
+      <div class="tags"><span>聚落更新</span><span>生土建筑</span><span>CIID 金奖</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="dahanshan">
+      <div class="thumb"><span class="badge">实体项目</span><img src="assets/pages/ug_p03.jpg" alt="大汉山"></div>
+      <div class="body"><h4>云顶之上，汉山之眼 <span class="yr">2015</span></h4>
+      <p>大汉山祈福台景区空间设计——依山就势、天人合一，以「衍」为题的行变设计观</p>
+      <div class="tags"><span>景观设计</span><span>水墨叙事</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="ertong">
+      <div class="thumb"><span class="badge">CIID 人文关怀奖</span><img src="assets/pages/ug_p12.jpg" alt="宝氮幼儿园"></div>
+      <div class="body"><h4>宝氮幼儿园 · 立面改造 <span class="yr">2015</span></h4>
+      <p>「打开每个孩子的心灵之窗」——宝鸡氮肥厂幼儿园外立面彩色圆窗改造</p>
+      <div class="tags"><span>建筑立面改造</span><span>儿童空间</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="liudong">
+      <div class="thumb"><span class="badge">CIID 银奖</span><img src="assets/pages/ug_ld02.jpg" alt="流动边缘"></div>
+      <div class="body"><h4>流动 · 边缘——自由聚落 <span class="yr">2015</span></h4>
+      <p>曲面草坡屋顶与圆形庭院——把聚落「藏」进地景的绿色建筑实验，CIID 8090 银奖方案</p>
+      <div class="tags"><span>地景建筑</span><span>绿色屋顶</span><span>CIID 银奖</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+    <div class="card rv" data-story="shouhui">
+      <div class="thumb"><img src="assets/pages/ug_p14.jpg" alt="律动足迹手绘"></div>
+      <div class="body"><h4>律动 · 足迹 &amp; 手绘小品 <span class="yr">2015</span></h4>
+      <p>北京延庆妫河创意产业园设计 + 景观快题与手绘小品——手上的功夫从来不曾放下</p>
+      <div class="tags"><span>产业园</span><span>手绘表现</span></div></div>
+      <div class="more">READ STORY</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 联系 ================= -->
+<section class="contact" id="contact">
+  <div class="c-grid">
+    <div class="rv">
+      <h2>让课堂里的 AI<br>被更多人看见 <em>→</em></h2>
+      <div class="say">课程合作 · 竞赛指导 · AIGC 教学分享 · 项目合作，都欢迎来聊：</div>
+    </div>
+    <div class="chips rv">
+      <span class="chip"><i>微</i>187 0921 2904</span>
+      <span class="chip"><i>@</i>97209300（QQ）</span>
+      <span class="chip"><i>粤</i>深圳 · 横岗</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="in">
+    <span><b>YANCY TAN</b> © 2026 · 数字媒体艺术教师作品集</span>
+    <span>Designed &amp; built with ♥ and a lot of coffee · 绿色手绘风 v3</span>
+  </div>
+</footer>
+
+<!-- ================= 弹窗：故事 ================= -->
+<div id="story">
+  <div class="st-panel">
+    <button class="st-close" onclick="closeStory()">✕</button>
+    <div id="stBody"></div>
+  </div>
+</div>
+
+<!-- ================= 弹窗：短片播放 ================= -->
+<div id="filmModal">
+  <div class="fm-panel">
+    <div class="fm-head">
+      <span class="fm-title" id="fmTitle"></span>
+      <span class="fm-sub" id="fmSub"></span>
+      <button class="fm-close" onclick="closeFilm()">✕</button>
+    </div>
+    <video id="fmVideo" controls playsinline></video>
+    <div class="fm-navs">
+      <button onclick="filmStep(-1)">‹ 上一部</button>
+      <button onclick="filmStep(1)">下一部 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 弹窗：3D 实验室 ================= -->
+<div id="lab3d">
+  <div class="lab-panel">
+    <span class="lab-tag">✦ 星星猫 · STARCAT 3D LAB</span>
+    <div class="lab-load" id="labLoad">Loading star cat…</div>
+    <div class="lab-spin" id="labSpin"></div>
+    <button class="lab-close" onclick="closeLab()">✕</button>
+    <div class="lab-hint">DRAG TO ROTATE · SCROLL TO ZOOM · 双击重置</div>
+  </div>
+</div>
+
+<!-- ================= 灯箱 ================= -->
+<div id="lightbox"><img id="lbImg" alt=""><div class="lb-cap" id="lbCap"></div></div>
+
+<script>
+var S={};
+S.dahanshan={t:'云顶之上，汉山之眼',sub:'大汉山祈福台景区空间设计 · 2015 · 实体项目',tags:['景观设计','实体项目','山地景观'],hero:'assets/pages/ug_p03.jpg',
+quote:'行变——与自然共存，并创造出属于大汉山如今的时代符号。',
+secs:[
+{h:'故事',p:'这是学生时代参与的一个真实项目：南郑县大汉山顶的祈福广场。方案以一个「衍」字贯穿——生长、繁衍、延续。我希望广场建筑与自然美景融为一体，把南郑县城与汉中全景尽收眼底，创造山地景观保护开发利用的新模式，塑造专属于当代人的文化精神场所。'},
+{h:'展板',p:'完整方案由九张展板构成——从「衍」字立意、区位与案例分析，到图解演绎、水墨表现与全景鸟瞰。水墨是这套方案的母语：总平面用灰色调渲染出螺旋形建筑体量与圆形广场，配以《诗经·旱麓》的竖排诗句；夜景效果图里，下沉广场的暖黄灯光与发光灯阵让「祈福」有了具体的温度。',imgs:['assets/pages/ug_dh01.jpg','assets/pages/ug_dh02.jpg','assets/pages/ug_dh04.jpg','assets/pages/ug_dh05.jpg','assets/pages/ug_dh06.jpg','assets/pages/ug_dh07.jpg','assets/pages/ug_dh08.jpg','assets/pages/ug_dh09.jpg','assets/pages/ug_dh10.jpg'],cap:'九张展板全览 · 「衍」封面 / 项目立意 / 区位与总图 / 案例与场地分析 / 图解与历史影像 / 水墨表现 / 全景鸟瞰长卷 / 夜景组合 / 光柱夜景'},
+{h:'回响',p:'第一次跟着真实场地、真实业主、真实造价走完一个完整项目——「依山就势、天人合一」这八个字，从图纸上的口号变成了落地的约束条件。这比任何奖项都更早地教会我：设计是妥协的艺术。'}]};
+S.shengtu={t:'归 · 巢',sub:'生土聚落未来社区规划设计 · 本科一年级 · CIID 金奖',tags:['聚落更新','生土建筑','CIID 金奖'],hero:'assets/pages/ug_gchero.jpg',
+quote:'窑洞不只是房子，它是黄土高原上人与土地最古老的一份契约。',
+secs:[
+{h:'起点',p:'本科一年级的第一个完整设计。从陕西黄土高原的实地调研开始：拍黄土坡、量窑洞、记录村落肌理，把生土建筑的真实现状带回图板。'},
+{h:'方法论',p:'整套方案定名「归·巢」（SOIL SETTLEMENT FUTURE COMMUNITY）——让离开窑洞的人重新归来。七张展板按调研分析篇、理论构架篇、概念孵化篇、空间图式篇、室内空间篇推进：从肌理演变图解、分形几何研究到体量推敲矩阵，最后落在生土建筑群的「未来社区」上——学校、公共驿站、生土疗养院、住宅、生土博物馆、广场、综合超市在鸟瞰图上被引线一一标注，构成「未来社区的自律系统形态」。',imgs:['assets/pages/ug_gc01.jpg','assets/pages/ug_gc02.jpg','assets/pages/ug_gc03.jpg','*assets/pages/ug_gc0405.jpg','*assets/pages/ug_gc0607.jpg'],cap:'七张展板原版完整呈现 · 01 调研分析 / 02 理论构架 / 03 概念孵化 / 04+05 空间图式（成对并排）/ 06+07 簇群与室内（成对并排）'},
+{h:'回响',p:'2015 年，「生土窑洞社区」获得中国建筑学会室内分会 CIID8090 设计艺术展（西安站）金奖——那是我第一次意识到，「行走」式的调研加真诚的设计叙事，是可以被行业看见的。这套「调研→理论→概念→空间」的四篇式工作方法，后来贯穿了我全部的学生时代与职业生涯，也在今天变成了我教学生做设计课题的标准流程。'}],
+awards:['2015 CIID 设计艺术展（西安站）· 金奖 · 生土窑洞社区']};
+S.ertong={t:'宝氮幼儿园 · 立面改造',sub:'宝鸡氮肥厂幼儿园空间视觉系统化设计 · 2015',tags:['建筑立面改造','儿童空间','CIID 人文关怀奖'],hero:'assets/pages/ug_p12.jpg',
+quote:'打开每个孩子的心灵之窗。',
+secs:[
+{h:'设计',p:'宝鸡氮肥厂幼儿园的空间视觉系统化设计方案——一次以外立面为主体的改造：用彩色圆窗与彩虹地坪为旧厂房幼儿园换上新装，底层外廊悬挂彩色圆盘，走廊与活动室的室内空间一并以「彩虹、月兔、星空」的意象串联，让建筑本身成为孩子们的第一件教具。「爱孩子，爱家长，爱老师，爱幼儿园——我们需要搭建的，是一个充满爱的家园。」',imgs:['*assets/pages/ug_bnboard.jpg','assets/pages/ug_bn01.jpg','assets/pages/ug_bn02.jpg','assets/pages/ug_bn03.jpg','assets/pages/ug_bn04.jpg','assets/pages/ug_bn05.jpg'],cap:'完整展板 / 教学楼彩色立面 / 架空连廊 / 走廊内景 / 夜景表现'},
+{h:'回响',p:'方案获得 2015 CIID 中国建筑学会室内分会 8090 设计艺术展（西安站）人文关怀奖。谁能想到十年后，教育会成为我的职业本身。'}],
+awards:['2015 CIID 设计艺术展（西安站）· 人文关怀奖 · 宝氮幼儿园']};
+S.liudong={t:'流动 · 边缘',sub:'自由聚落空间规划设计 · 本科 · 2015 · CIID 银奖',tags:['聚落景观','地景建筑','CIID 银奖'],hero:'assets/pages/ug_ld02.jpg',
+quote:'让建筑的边缘，消融在草坡与庭院之间。',
+secs:[
+{h:'概念',p:'「流动·边缘」是一次把建筑「藏」进地景的实验：曲面草坡屋顶、圆形庭院天井、流动的边界——聚落像从大地里生长出来。方案以「自由聚落」为题，用绿色屋顶缝合建筑与景观，让空间在行走中被连续阅读。'},
+{h:'版面',imgs:['assets/pages/ug_ld01.jpg','assets/pages/ug_ld03.jpg','assets/pages/ug_ld04.jpg','assets/pages/ug_p13.jpg'],cap:'设计说明 / 效果图组 / 剖面与渲染 / 北京延庆妫河创意产业园鸟瞰展板'}],
+awards:['2015 CIID 8090 设计艺术展（西安站）· 银奖 · 自由聚落空间规划设计']};
+S.shouhui={t:'律动 · 足迹 & 手绘小品',sub:'北京延庆妫河创意产业园 + 景观快题手绘 · 2015',tags:['产业园','建筑设计','手绘表现'],hero:'assets/pages/ug_p14.jpg',
+quote:'手绘是设计师随身携带的思考方式——它从来没离开过我的课堂。',
+secs:[
+{h:'产业园',p:'「律动·足迹——北京延庆妫河创意产业园」，用地约 4000㎡，主题「让人与环境和谐为本」。流线型曲面屋顶、屋顶天光与通风口、曲线栏杆与连廊庭院，在轴测图上被逐点标注——用有机的建筑语言连接学习与工作的过渡地带。'},
+{h:'手绘',p:'马克笔与水彩的景观手绘小品——亭子、花架、水景、滨水绿地、欧式街景，加上两张景观快题设计（总平面 + 鸟瞰 + 节点透视的完整快题版式）。本科四年的手上功夫，如今全部还给了学生的作业本上。',imgs:['assets/pages/ug_p14.jpg'],cap:'景观手绘小品 + 快题设计版面'}]};
+S.taohuayuan={t:'江西上犹桃花源度假酒店景观内庭',sub:'上犹桃花源度假酒店 · 酒店景观内庭 · 2017-18 · Small Scale',tags:['酒店景观','新中式','山水印炼'],hero:'assets/pages/mg_p03.jpg',
+quote:'把桃花源的美好山水印炼为一种语言，在诗意之上获得空间与人之间的对话。',
+secs:[
+{h:'立意',p:'项目位于江西上犹县，为酒店内庭景观。设计立意「山水印炼」：用现代手法提炼具有山水功能的构景元素，利用材质肌理变化打造简雅的空间氛围，在有限的景观意象中延伸出无限的精神内涵。'},
+{h:'图面',p:'中式园林庭院、水景、木质廊亭与山水背景的连续实景照片组，是这套方案最打动评审的部分——它证明了「诗意」是可以被设计与落地的。',imgs:['assets/pages/mg_p04.jpg'],cap:'桃花源酒店内庭实景意向'},
+{h:'延伸',p:'同一时期还完成了越秀广纸新城 114 地块、汕尾华润万象天地 C 地块等地产景观项目的前期储备。'}]};
+S.shaoxing={t:'绍兴古都保护发展城市设计',sub:'清华同衡规划研究院实习项目 · 2018',tags:['城市设计','GIS 分析','古城保护'],hero:'assets/pages/mg_p17.jpg',
+quote:'用 GIS 读一座城，你会发现古城与新区的肌理冲突，是写在数据里的。',
+secs:[
+{h:'课题',p:'2018 年 5-9 月，我在北京清华同衡规划研究院实习，参与绍兴古都保护发展城市设计。古城保护是核心任务：疏解古城人口、重新规划景区与居住用地。'},
+{h:'我的工作',p:'负责古城前期调研与数据采集，参与 GIS 前期分析与总体结构制作，并主设计其中一个广场。大量 GIS 分析展示了古城与新建城市肌理的冲突性、古城人口密度与需要疏散的人口规模、四座山体对建筑高度的控制要求。'},
+{h:'收获',p:'在国企大院里学会了「干苦活」：让特色空间落地，用地、交通都围绕特色展开，通过城市设计制定建设标准，寻找发展突破、制造城市事件。'}]};
+S.zhangmutou={t:'广东东莞樟木头森林公园',sub:'市政景观设计 · 2018',tags:['市政景观','森林康养','自然教育'],hero:'assets/pages/mg_p18.jpg',
+quote:'森林康养与自然教育，是广东国有林场发展的新趋势。',
+secs:[{h:'设计',p:'依托国有林场改建为森林公园。用 GIS 数据理性全面分析基地，为打造独具东莞特色的「十里油茶林 · 十里茶花吟」标志性景观，规划六条科普教育径与登山径。'}]};
+S.gangkou={t:'合肥空港小镇 · 未来实验室',sub:'OCT 华侨城 · 城市设计 · Big Scale',tags:['城市设计','文旅小镇','赛博朋克'],hero:'assets/pages/mg_p10.jpg',
+quote:'An Attempt: Integrating Cyberpunk into Architectural Landscape——一次把赛博朋克植入建筑景观的大胆尝试。',
+secs:[
+{h:'野心',p:'华侨城 OCT 在合肥空港的文旅小镇：航空文创 × 科技互动 × 生态智谷。我把它命名为「未来实验室 / FUTURE LAB」——领航、无限未来。'},
+{h:'策略',p:'从业态分析、街道界面活跃度出发定义特色街道与庭院空间；Step1 根据建筑特定功能打造特色景观庭院，Step2 用「未来核」串联科技体验环与文化体验环形成闭环步道系统，Step3 叠加雕塑与艺术装置。总平面上，主入口广场、记忆储存树、飞行体验创意庭院、空港创意市集等 21 个节点被四条轴线编织在一起。',imgs:['assets/pages/mg_p06.jpg','assets/pages/mg_p08.jpg','assets/pages/mg_p11.jpg'],cap:'概念页 FUTURE LAB / 双环道系统 / 设计母题与夜景'},
+{h:'互动',p:'为两类用户（科技产业人群与国际旅客）设计了 VR 未来探索之旅的互动应用策略——数码体验增加互动，产业资讯提升项目溢价。现在回头看，这个 2020 年的交互尝试，正是后来我转向数字媒体教学的伏笔。'}],
+facts:[['规模','Big Scale · 城市设计'],['业主','OCT 华侨城'],['关键词','未来核 · 双环道 · 飞行艺术街区']]};
+S.yingde={t:'英德观音山温泉度假村售楼部',sub:'地产景观 · 新禅式温泉度假目的地',tags:['地产景观','新中式禅意'],hero:'assets/pages/mg_p12.jpg',
+quote:'以莲花为本真，从宏观到微观层级形成统一的设计语言。',
+secs:[{h:'立意',p:'项目位于广东英德。「隐世禅意」——以莲花为主题，通过莲的本真与禅的象征意义，在建筑设计、空间设计、小品设计、室内设计、公共艺术等方面形成统一语言，打造珠三角洲首个「新禅式体验温泉度假目的地」。'}]};
+S.wanxiang={t:'汕尾华润万象天地 C 地块',sub:'地产景观设计 · 新中式',tags:['地产景观','居住空间'],hero:'assets/pages/mg_p13.jpg',
+quote:'时间脉动，空间交融——软化方正冰冷的都市居住空间。',
+secs:[{h:'立意',p:'项目位于广东汕尾。将现代设计概念「时间脉动，空间交融」植入新中式景观，软化都市居住空间功能彼此独立、方正冰冷的感觉并加入空间之间的流动性，创造「东方韵味」的丰富积极空间。'}]};
+S.xinghuiwan={t:'越秀星汇湾景观设计',sub:'竞标项目 · 四天中标',tags:['竞标','高效率'],hero:'assets/pages/mg_p15.jpg',
+quote:'四天——从任务书到中标方案，是职业生涯里最快的一战。',
+secs:[{h:'故事',p:'项目周期极短，四天完成方案并成功中标。这套快反能力来自前面所有项目的方法论沉淀：业态分析、空间结构、材质语言一气呵成。它后来也成了我带学生打竞赛的口头禅——拼的不是熬夜，是流程。'}]};
+S.holland={t:'新加坡 · 荷兰公寓',sub:'Holland Loft 高端住宅室内 · 2020 · 团队共同完成',tags:['室内设计','海外住宅','现代简约'],hero:'assets/pages/in_p05.jpg',
+quote:'用最安静的材质，安放最喧嚣的城市生活。',
+secs:[{h:'设计',p:'新加坡 Holland Loft 高端住宅室内设计，全程参与 CONCEPT / SCHEMATIC / DESIGN DEVELOPMENT：客餐厨一体化的开放布局，浅木饰面与隐藏灯带柜体贯穿全屋，落地玻璃把城市景观引入起居空间——现代日式极简的温润取向。',imgs:['assets/pages/in_p06.jpg','assets/pages/in_p07.jpg','assets/pages/in_p08.jpg'],cap:'客餐厨一体化 / 起居空间 / 材质与灯光细节'}]};
+S.phuket={t:'泰国 · 普吉岛 Kamala 海滩宅',sub:'Phuket Kamala Beach 度假宅邸 · 2017 · 团队共同完成',tags:['室内设计','度假空间','东南亚'],hero:'assets/pages/in_p18.jpg',
+quote:'花格砖透进来的，不只是光，还有整片热带。',
+secs:[{h:'设计',p:'普吉岛 Kamala 海滩度假宅邸的室内与公区设计：电梯厅以圆形艺术盘、龟背竹与空心花格砖回应热带气候，木栏杆楼梯搭配球状吊灯，走廊以木格栅与绿植水景串联——大地色系里，度假感是被「设计」出来的，不是被「装修」出来的。',imgs:['assets/pages/in_p19.jpg','assets/pages/in_p20.jpg','assets/pages/in_p21.jpg'],cap:'电梯厅 / 格栅走廊 / 楼梯与灯饰'}]};
+S.xiangshan={t:'深圳 · 香山美墅 7H',sub:'7H Xiangshan Villa 豪宅室内 · 2020 · 团队共同完成',tags:['室内设计','豪宅','现代轻奢'],hero:'assets/pages/in_p35.jpg',
+quote:'一座能停进超跑的车库，才是这栋房子的玄关。',
+secs:[{h:'设计',p:'深圳香山美墅 7H 的豪宅室内方案：无缝哑光柜体墙的私人车库会所、大理石背景墙与内嵌灯带的挑高客厅、三角钢琴与艺术吊灯的音乐空间——大地色系加隐藏式照明，沉稳奢华的质感贯穿始终。',imgs:['assets/pages/in_p36.jpg','assets/pages/in_p41.jpg','assets/pages/in_p38.jpg'],cap:'挑高音乐客厅 / 漫读书房 / 主卧'}]};
+S.maosheng={t:'茂盛世居 · AI 数字孪生复原',sub:'深圳携创高级技工学校 · 室内设计工作室 · 2025 · 明星案例',tags:['AI 数字孪生','文化遗产保护','项目式教学','5 家媒体报道'],hero:'assets_media/wx_maosheng/img00.jpg',
+quote:'当 AI 遇见老围屋——一座 230 岁客家围屋的「数字重生」。',
+video:'assets_media/sztv_maosheng.mp4',
+secs:[
+{h:'缘起',p:'2025 年春天，我带着室内设计工作室的师生走进深圳龙岗区横岗街道客家古民居——茂盛世居。青砖黛瓦间，斑驳的砖墙、精美的木雕都在诉说着先辈的生活智慧。王天佑同学说：那些砖石仿佛有了灵魂，在和我们对望，聆听曾经的经历。'},
+{h:'科技赋能',p:'无人机拍摄大量建筑外立面高清图片，运用 AI 高斯喷溅技术成功构建茂盛世居的数字孪生模型——不仅实现对建筑细节的高精度还原，更为未来的保护与修复提供数字化支撑。传统测绘需要耗费大量时间和人力，而 AI 让这一切高效而精准：在建筑老化之前提前记录文物、建立模型、制定保护设计方案。',imgs:['assets_media/wx_maosheng/img09.jpg','assets_media/wx_maosheng/img10.jpg','assets_media/wx_maosheng/img12.jpg','assets_media/wx_maosheng/img11.jpg','assets_media/wx_maosheng/img08.jpg'],cap:'无人机航拍 / 调研现场 / 围屋街巷 / 庭院内景 / 石碑题刻'},
+{h:'毕设课题',p:'团队把「客家围屋的数字化保护」「传统建筑元素的现代转译」「社区文化空间的再设计」「历史遗产的文创开发」变成毕业设计选题——丘龙辉、谢广豪毕业设计组的创新课题，让文化传承更有温度。'},
+{h:'媒体矩阵',p:'项目被深圳卫视（第一现场）、羊城晚报·羊城派、深圳新闻网、读特、晶报等媒体报道：「围屋记忆存云端」「当 AI 遇见老围屋」「读取围屋的云端记忆」。'}],
+ext:[{label:'深圳卫视 · 第一现场报道',url:'https://www.sztv.com.cn/ysz/dsdb/dspd/dyxc/80411370.shtml',tag:'VIDEO'},{label:'公众号 · 用AI守护客家记忆',url:'https://mp.weixin.qq.com/s/ToyE3hCe6ISYQGZ2cPHcGg',tag:'ARTICLE'}],
+facts:[['地点','深圳龙岗 · 横岗茂盛世居'],['时间','2025 春'],['技术','无人机 + AI 高斯喷溅数字孪生'],['报道','深圳卫视 / 羊城晚报 / 深圳新闻网 / 读特 / 晶报']]};
+S.dunhuang={t:'沙漠里的文明十字路口',sub:'走进敦煌莫高窟 · 高中通识交互课件 · 自研',tags:['WebGL VR','游戏化教学','AI 视频','数字敦煌'],hero:'assets/work_dunhuang.jpg',
+quote:'把莫高窟装进一个 HTML 文件——让没有去过敦煌的学生，在教室里走进 285 窟。',
+launch:{t1:'▶ 打开完整交互课件',t2:'自研等距柱状全景查看器 · 7 个章节 · 建议新窗口全屏体验',url:'works/dunhuang.html'},
+secs:[
+{h:'课件',p:'「沙漠里的文明十字路口——走进敦煌莫高窟」是为高中通识课设计的交互课件：从丝路导入戏剧开始，学生可以在莫高窟窟体外景的 360° 全景里点击金色热点进入洞窟内景，一路走到历史背景、285 窟壁画、千年脉络、壁画活化与探究小站。'},
+{h:'技术',p:'课件采用自研等距柱状全景查看器（WebGL shader）：外景与洞窟内景均为可拖动环顾、滚轮缩放的真全景。第 285 特窟接入了数字敦煌官方真实影像——主室、南壁、北壁、佛龛四个场景 14 个热点，AI 生成的壁画活化视频让五百强盗、皈依僧侣在墙上重新动起来，画中人还会与学生第一人称对话问答。'},
+{h:'教学设计',p:'导入戏剧（为什么是敦煌）→ VR 巡览（空间认知）→ 历史背景（知识）→ 285 窟（深度案例）→ 千年脉络（时间线）→ 壁画活化「四墙八灵」对话游戏（随堂检测）→ 小结探究。一节课的完整闭环。'}],
+facts:[['形式','单文件 HTML · 本地即开'],['章节','7 章 · 高中通识'],['核心','自研全景查看器 + 数字敦煌影像 + AI 壁画活化'],['体量','28 MB 单文件']]};
+S.shikong={t:'时空裂缝 · 物理规律验证官',sub:'像素风游戏化物理课堂 · 4-9 年级 · 90 分钟 · 自研',tags:['游戏化学习','像素美术','AI 素养','物理'],hero:'assets/work_shikong.jpg',
+quote:'AI 生成的视频里有六指琴魔和融化的杯子——找到它们，你就学会了物理。',
+launch:{t1:'▶ 打开完整交互课件',t2:'破晓电影审查局 · 5 关卡 + Debug 实验室 · 建议新窗口体验',url:'works/shikong.html'},
+secs:[
+{h:'世界观',p:'「破晓电影审查局」发布公告：AI 生成的动画片段出现物理错误——六指琴魔、融化的杯子、违反重力的水滴……学生以「物理规律验证官」的身份进入 PIXEL CINEMA，在 AI 视频里找出幽灵 bug：暂停、红笔圈出、写出物理学解释，再到 Debug 修正实验室里驯教 AI。'},
+{h:'教学设计',p:'5 个关卡对应 5 组物理概念（重力、浮力、光影、剪辑穿帮、综合 Boss），知识点图鉴 + 贴纸奖励 + 存档码系统，90 分钟一节课的完整游戏化学习闭环。它同时是一节 AI 素养课：让学生直观理解「AI 会犯错，需要人来验证」。'},
+{h:'美术',p:'全课件采用像素美术风格，复古电影院、放映机光束、小狗与小孩的插画全部为生成素材统一调色——视觉语言本身就是数字媒体专业教学的一部分。'}],
+facts:[['学段','4-9 年级 · 90 分钟'],['关卡','5 关 + Debug 实验室'],['定位','物理规律 × AI 素养双主题'],['形式','单文件 HTML + 素材目录']]};
+S.touchdesigner={t:'TouchDesigner 数字媒体项目群',sub:'数字媒体技术项目实践 · 2024-2026',tags:['TouchDesigner','非遗数字化','实时互动','MediaPipe'],hero:'assets/pages/pg_p26.jpg',
+quote:'皮影、脸谱、粒子、音画——非遗与新媒体在节点连线的两端相遇。',
+secs:[
+{h:'项目群',p:'一组 TouchDesigner 数字媒体技术项目实践：非遗皮影（皮影造型粒子化重构）、互动脸谱（摄像头实时面部追踪叠加京剧脸谱彩绘）、AIGC MAPPING（点云人形投影映射）、MediaPipe 手指互动（手指拖动圆圈的教学实战）、音画互动（音频驱动的螺旋粒子）与多个互动小 DEMO。',imgs:['assets/pages/pg_p25.jpg','assets/pages/pg_p27.jpg','assets/pages/pg_p28.jpg','assets/pages/pg_p29.jpg','assets/pages/pg_p30.jpg','assets/pages/pg_p31.jpg'],cap:'非遗皮影 / AIGC MAPPING / 互动球体 / 噪声地形 / 音画互动 / MediaPipe 手指追踪'},
+{h:'社区',p:'已加入数字媒体大型社区 TEA Community 以及中国官方 TouchDesigner 社区——把行业生态带进课堂，也把课堂作品带进行业视野。'}],
+facts:[['工具','TouchDesigner + MediaPipe'],['方向','非遗数字化 × 实时互动'],['社区','TEA Community / 中国官方 TD 社区']]};
+S.aigc_edu={t:'AIGC 教学应用体系',sub:'把 AIGC 铺进教学的每个层面 · 2024-2026',tags:['AIGC','数字人','VR/AR','数字孪生','全校社团'],hero:'assets/pages/pg_p05.jpg',
+quote:'AI 不是来取代老师的，它是我的助教、我的微课主播、我的意向图渲染师。',
+secs:[
+{h:'体系',p:'七个层面的 AI 教学应用：AI 智能体助教（答疑与个性化辅导）、数字人微课（虚拟讲师录制知识点）、AIGC 设计 IP（学生作品品牌化）、IP VR 虚拟现实（沉浸式展览）、AI AR 虚拟互动（增强现实课堂）、AI 技术制作数字孪生模型（茂盛世居等实体项目）、AIGC 生成意向图（设计课提速）。'},
+{h:'社团',p:'拥有独立的 AIGC 全校社团——从软件技能到创作思维的系统培养，让技工院校的学生也能站在 AI 时代的门口。'}]};
+S.aigc_art={t:'AIGC 个人创作',sub:'创藝 AIGC · 主题原创场 · 2023-2026',tags:['AI 绘画','概念设计','国风','AI 视频'],hero:'assets/ppt/art_01.jpg',
+quote:'先把工具用熟，才有资格教学生驾驭它。',
+secs:[
+{h:'创作',p:'持续三年的 AIGC 个人创作：赛博朋克 AI 人像、机甲与宇航员科幻概念图、传统仕女与庭院宴会的国风绘画、AIGC 室内设计意向图与未来感建筑效果图、AI 视频与影视剪辑创作——每一个门类都是一次「教师先吃螃蟹」的实验。',imgs:['assets/ppt/art_02.jpg','assets/ppt/art_03.jpg','assets/ppt/art_04.jpg','assets/ppt/art_05.jpg','assets/ppt/art_06.jpg','assets/ppt/art_07.jpg','assets/ppt/art_08.jpg','assets/ppt/art_09.jpg'],cap:'AI 生成图集 / 科幻概念 / AIGC 转国风 / AI 视频剪辑工作流'},
+{h:'观点',p:'AIGC 不是取代设计，而是把设计师从重复劳动里解放出来——这件事要让学生亲眼看到、亲手做到，而不只是听老师说。'}]};
+S.jingsai={t:'学生竞赛指导成果',sub:'竞赛工作室 · 2023-2026 · 国赛一等奖',tags:['竞赛指导','国赛一等奖','国际奖项'],hero:'assets/pages/pg_p34.jpg',
+quote:'教师最好的作品，是学生站上领奖台的那一刻。',
+secs:[
+{h:'战绩',p:'作为竞赛工作室负责人，指导学生获奖累累：2025 全国院校室内设计技能大赛国赛一等奖、广东省选拔赛一二三等奖；深圳市横岗商会 AI 创意短视频大赛数字媒体学生组 1 个二等奖 + 2 个优胜奖；美国缪斯设计奖、G-CROSS AWARD、EPACC 国际环艺创新设计大赛、米兰国际艺术设计奖、英国国际艺术设计奖、广东省学院奖……',imgs:['assets/ppt/award_01.jpg','assets/ppt/award_02.jpg','assets/ppt/award_03.jpg','assets/ppt/award_04.jpg','assets/ppt/award_05.jpg','assets/ppt/award_06.jpg','assets/ppt/award_07.jpg','assets/ppt/award_08.jpg','assets/ppt/award_09.jpg','assets/ppt/award_10.jpg','assets/ppt/award_11.jpg','assets/ppt/award_12.jpg'],cap:'国赛领奖 / 省选拔赛 / 参赛现场 / 2024 省选拔赛作品 / 学生作品版面 / 缪斯奖 / EPACC-G-CROSS'},
+{h:'方法论',p:'竞赛技术攻坚要点：拆解赛项规程 → 建立工作室训练梯队 → 模拟评审反复审视优化 → 从逻辑到排版全方位提升。比赛不是押题，是把真实项目流程压缩进训练里。'}],
+awards:['2025 全国院校室内设计技能大赛 · 国赛一等奖','2025 广东省选拔赛 · 1 一等奖 + 2 二等奖 + 1 三等奖','2025 横岗商会 AI 创意短视频大赛 · 1 二等奖 + 2 优胜奖','2025 美国缪斯设计奖 Muse Design Awards','2025 G-CROSS AWARD','2024 EPACC 国际环艺创新设计大赛 · 铜奖','2025 米兰国际艺术设计奖 / 英国国际艺术设计奖','广东省学院奖青年师生设计艺术大赛 · 一、二、三等奖']};
+S.bishe={t:'毕业设计指导',sub:'毕设工作坊 · 模拟评审 · 2023-2026',tags:['毕设指导','模拟评审'],hero:'assets/ppt/bishe_01.jpg',
+quote:'模拟评审反复审视优化——从逻辑到排版，全方位提升。',
+secs:[
+{h:'工作坊',p:'每年带毕业设计课题组：从开题、中期到答辩的模拟评审制度，让每个学生都被「评委」追问过 N 遍。选题覆盖餐饮空间、售楼处、咖啡馆、古建改造与数智乡村海报——包括茂世家文旅空间等真实场地课题。',imgs:['assets/ppt/bishe_02.jpg','assets/ppt/bishe_03.jpg','assets/ppt/bishe_04.jpg','assets/ppt/bishe_05.jpg','assets/ppt/bishe_06.jpg','assets/ppt/bishe_07.jpg'],cap:'学生毕设版面选辑（部分）'},
+{h:'成果',p:'毕业生带着完整的作品集与参赛经验走向升学与就业——工作室的赛果捷报就是最好的证明。'}]};
+
+</script>
+<script>
+/* ============================================================
+   YANCY TAN 作品集 v3 —— 引擎
+   ============================================================ */
+var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function goSec(sel){ var el=document.querySelector(sel); if(el) el.scrollIntoView({behavior:REDUCE?'auto':'smooth'}); }
+
+/* ---------- 导航状态 ---------- */
+(function(){
+  var nav=document.getElementById('nav'), hero=document.getElementById('hero');
+  function upd(){
+    var hh=hero.offsetHeight-70;
+    nav.classList.toggle('on-hero', scrollY<hh);
+    nav.classList.toggle('scrolled', scrollY>8);
+  }
+  addEventListener('scroll',upd,{passive:true}); upd();
+})();
+
+/* ---------- 滚动 reveal + 计数 + 涂鸦描画 ---------- */
+(function(){
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(!e.isIntersecting)return;
+      e.target.classList.add('in'); io.unobserve(e.target);
+    });
+  },{threshold:.12});
+  document.querySelectorAll('.rv').forEach(function(el){io.observe(el);});
+  // profile scribble draw
+  var pc=document.getElementById('profCopy');
+  if(pc){
+    var io2=new IntersectionObserver(function(es){
+      if(es[0].isIntersecting){ pc.classList.add('drawn'); io2.disconnect(); }
+    },{threshold:.3});
+    io2.observe(pc);
+  }
+  // counters
+  var io3=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(!e.isIntersecting)return;
+      var el=e.target, target=+el.getAttribute('data-count'), t0=null;
+      if(REDUCE){ el.textContent=target; io3.unobserve(el); return; }
+      function tick(ts){
+        if(!t0)t0=ts;
+        var k=Math.min(1,(ts-t0)/1200), ease=1-Math.pow(1-k,3);
+        el.textContent=Math.round(target*ease);
+        if(k<1)requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick); io3.unobserve(el);
+    });
+  },{threshold:.4});
+  document.querySelectorAll('[data-count]').forEach(function(el){io3.observe(el);});
+  // marquee duplicate
+  var mq=document.getElementById('mq1');
+  if(mq){ mq.innerHTML+=mq.innerHTML; }
+})();
+
+/* ---------- 极光 Hero（WebGL） ---------- */
+(function(){
+  var cv=document.getElementById('aurora');
+  var gl=cv.getContext('webgl',{antialias:true,alpha:false});
+  if(!gl){ document.getElementById('fb').style.display='block'; return; }
+  var VS='attribute vec2 a;varying vec2 vUv;void main(){vUv=a*.5+.5;gl_Position=vec4(a,0.,1.);}';
+  var FS=[
+  'precision highp float;',
+  'uniform vec2 u_res;uniform float u_time;uniform vec2 u_mouse;uniform vec4 u_rip[6];',
+  'varying vec2 vUv;',
+  'float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
+  'float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
+  ' return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}',
+  'float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*noise(p);p=p*2.03+vec2(11.,7.);a*=.5;}return v;}',
+  'void main(){',
+  ' vec2 uv=vUv;',
+  ' vec2 p=(gl_FragCoord.xy-.5*u_res)/u_res.y;',
+  ' float t=u_time*.32;',
+  ' float mx=u_mouse.x, my=u_mouse.y;',
+  ' vec3 col=vec3(.012,.045,.085);',
+  // 曲线度：鼠标居中 curve=0（平直渐变），移向两侧趋近 1（S 形绸带曲线）
+  ' float curve=abs(mx); curve=curve*curve*.65+curve*.35;',
+  // 三层极光帷幕
+  ' for(int i=0;i<3;i++){',
+  '  float fi=float(i);',
+  '  float scale=1.5+fi*.75;',
+  '  float speed=t*(.55+fi*.28);',
+  '  float x=p.x*scale + mx*(1.25-fi*.32) + p.y*curve*sin(speed*.4+fi*2.3)*.22 + fbm(vec2(p.x*scale*.75+speed*.45, fi*7.3))*mix(2.3,1.35,curve);',
+  // S 形绸带弯曲：仅 curve>0 时生效，约一个屏幕周期的 S 波 + 细摆
+  '  float bend=sin(p.x*3.2+speed*1.1+fi*1.9)*.30 + sin(p.x*5.1-fi*2.2-speed*.7)*.16 + sin(p.x*1.9+speed*1.6)*.18;',
+  '  float curtain=(p.y - .06 - fi*(.13+curve*.07) - my*.06 - bend*curve)*1.55;',
+  // 绸带化：曲线模式下更窄、更亮，形成清晰丝带脊线
+  '  float band=exp(-curtain*curtain*mix(13.,20.,curve));',
+  '  float wave=fbm(vec2(x, curtain*.85-speed));',
+  '  float wv=mix(wave*1.18+.16, .5+wave*.85, curve);',
+  // 帷幕垂帘竖纹 + 自亮脊升起的光柱：曲线模式下显现
+  '  float rays=fbm(vec2(p.x*(5.2+fi*1.8)+fi*3.7+speed*.4, curtain*.45));',
+  '  float raysK=mix(1., .3+rays*1.4, curve*.85);',
+  '  float rayCol=exp(-max(-curtain,0.)*2.6)*smoothstep(.3,.9,fbm(vec2(p.x*9.+fi*4.7+speed*.35, fi*5.)));',
+  '  float inten=band*wv*raysK + rayCol*curve;',
+  '  vec3 c1=vec3(.0,.92,.62), c2=vec3(.07,.42,1.0);',
+  '  vec3 ac=mix(c2,c1,clamp(curtain+.9+wave*.45,0.,1.));',
+  '  col+=ac*inten*(.52-fi*.10)*mix(1.,1.35,curve);',
+  ' }',
+  // 底部地平辉光
+  ' col+=vec3(.0,.38,.55)*exp(-length(p+vec2(mx*.28,1.02))*1.5)*.5;',
+  // 鼠标聚光
+  ' vec2 mp=vec2(mx*.42, my*.3+.05);',
+  ' float md=length(p-mp);',
+  ' col+=vec3(.05,.85,.6)*exp(-md*3.2)*.16;',
+  // 点击光波
+  ' for(int i=0;i<6;i++){',
+  '  vec4 r=u_rip[i];',
+  '  if(r.w>.5){',
+  '   float age=u_time-r.z;',
+  '   if(age<2.8){',
+  '    vec2 rp=(r.xy/u_res*2.-1.); rp.x*=u_res.x/u_res.y;',
+  '    float d=length(p+vec2(0.,-rp.y));',
+  '    float dd=length(p-rp);',
+  '    float rad=age*.55;',
+  '    float ring=exp(-pow((dd-rad)*8.5,2.))*(1.-age/2.8);',
+  '    col+=vec3(.16,1.,.72)*ring*.95;',
+  '    col+=vec3(.0,.75,.55)*exp(-dd*7.)*(1.-age/2.8)*.5;',
+  '   }',
+  '  }',
+  ' }',
+  // 星星（圆点）
+  ' vec2 sp=gl_FragCoord.xy/u_res*vec2(150.,85.);',
+  ' vec2 cell=floor(sp);vec2 fp=fract(sp);',
+  ' vec2 spt=vec2(hash(cell),hash(cell+7.7));',
+  ' float sd=length(fp-spt);',
+  ' float st=smoothstep(.13,.045,sd)*(.32+.4*sin(u_time*2.2+hash(cell)*40.));',
+  ' col+=vec3(st)*.55;',
+  ' col*=1.-.5*dot(uv-.5,uv-.5);',
+  ' gl_FragColor=vec4(col,1.);',
+  '}'].join('\n');
+  function mkShader(type,src){
+    var s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){ console.warn(gl.getShaderInfoLog(s)); return null; }
+    return s;
+  }
+  var vs=mkShader(gl.VERTEX_SHADER,VS), fs=mkShader(gl.FRAGMENT_SHADER,FS);
+  if(!vs||!fs){ document.getElementById('fb').style.display='block'; return; }
+  var prog=gl.createProgram();
+  gl.attachShader(prog,vs); gl.attachShader(prog,fs); gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){ document.getElementById('fb').style.display='block'; return; }
+  gl.useProgram(prog);
+  var buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  var loc=gl.getAttribLocation(prog,'a');
+  gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  var uRes=gl.getUniformLocation(prog,'u_res'),
+      uTime=gl.getUniformLocation(prog,'u_time'),
+      uMouse=gl.getUniformLocation(prog,'u_mouse'),
+      uRip=gl.getUniformLocation(prog,'u_rip');
+  function resize(){
+    var dpr=Math.min(devicePixelRatio||1,1.6);
+    var w=innerWidth, h=Math.max(innerHeight,520);
+    cv.width=w*dpr; cv.height=h*dpr;
+    gl.viewport(0,0,cv.width,cv.height);
+  }
+  resize(); addEventListener('resize',resize);
+  var mx=0,my=0,tmx=0,tmy=0;
+  addEventListener('mousemove',function(e){
+    tmx=(e.clientX/innerWidth)*2-1;
+    tmy=-((e.clientY/Math.max(innerHeight,520))*2-1);
+  },{passive:true});
+  var rips=[]; // {x,y,t}
+  /* 画布已 fixed 全屏铺底（z-index:-1），点击监听挂到 window 保证全页可触发波纹 */
+  addEventListener('click',function(e){
+    rips.push({x:e.clientX*dpr(),y:e.clientY*dpr(),t:performance.now()/1000});
+    if(rips.length>6)rips.shift();
+  });
+  function dpr(){ return Math.min(devicePixelRatio||1,1.6); }
+  var t0=performance.now();
+  function frame(){
+    var t=(performance.now()-t0)/1000;
+    mx+=(tmx-mx)*.045; my+=(tmy-my)*.045;
+    gl.uniform2f(uRes,cv.width,cv.height);
+    gl.uniform1f(uTime,t);
+    gl.uniform2f(uMouse,mx,my);
+    var arr=new Float32Array(24);
+    for(var i=0;i<6;i++){
+      if(rips[i]){ arr[i*4]=rips[i].x; arr[i*4+1]=cv.height-rips[i].y; arr[i*4+2]=rips[i].t; arr[i*4+3]=1; }
+    }
+    gl.uniform4fv(uRip,arr);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    if(!REDUCE) requestAnimationFrame(frame); else gl.drawArrays(gl.TRIANGLES,0,3);
+  }
+  frame();
+})();
+
+/* ---------- 新故事数据（教学四板块新增） ---------- */
+S.ai_teach={t:'AI 教学应用全景图',sub:'智能体助教 · 数字人微课 · VR/AR · 数字孪生 · 2024—2026',tags:['AIGC','智能体','数字人','VR/AR'],hero:'assets/ppt/ai_t05.jpg',
+quote:'AI 不是来抢教师饭碗的，它是给我插了一对翅膀。',
+secs:[
+{h:'全景',p:'在数字媒体艺术专业的课堂上，我把 AI 铺到了教学的每个层面：AI 智能体助教帮学生查资料改方案、数字人微课让「谭老师」可以 24 小时答疑、AIGC 意向图成为设计课的新画笔、VR/AR 虚拟互动把实训搬进虚拟空间、AI 数字孪生让文物建筑在屏幕里永生。'},
+{h:'十个现场',p:'从 AI 生成的围屋庭院光影方案，到学生戴上 AR 眼镜走进复原的老屋；从醒狮主题的 AIGC 海报，到颁奖台上的优秀表现——这组图是 AI 课堂的十个真实切片。',imgs:['assets/ppt/ai_t01.jpg','assets/ppt/ai_t07.jpg','assets/ppt/ai_t03.jpg','assets/ppt/ai_t04.jpg','assets/ppt/ai_t06.jpg','assets/ppt/ai_t08.jpg','assets/ppt/ai_t02.jpg','assets/ppt/ai_t10.jpg'],cap:'AI 教学应用 · 课堂切片'}]};
+S.nezha={t:'哪吒 AIGC IP 盲盒',sub:'AIGC 角色生成 → 盲盒企划全案 · 2025',tags:['AIGC 角色','盲盒企划','IP 商业化'],hero:'assets/ip/nezha_hero.jpg',
+quote:'少年开燃——每个隐藏款，都是一次逆命。',
+secs:[
+{h:'企划',p:'从 AIGC 生成的哪吒角色出发，完成一整套盲盒商业化企划：首屏概念、角色款式全员集结、隐藏款「赤金逆命」悬念设计、工艺细节展示，到开盒体验与购买引导——九连页一气呵成，是课堂里「IP 从 0 到 1」的完整示范。'},
+{h:'设计页',p:'',imgs:['assets/ip/nezha_roles.jpg','assets/ip/nezha_hidden.jpg','assets/ip/nezha_highlights.jpg','assets/ip/nezha_detail.jpg','assets/ip/nezha_open.jpg','assets/ip/nezha_buy.jpg','assets/ip/nezha_footer.jpg'],cap:'盲盒企划九连页 · 从角色到转化'}]};
+S.starcat={t:'星星猫 · 儿童数字 IP',sub:'专给自卑症儿童的数字IP · 手稿到 3D 全链路 · 2025',tags:['社会关怀','数字IP','3D'],hero:'assets/ip/starcat_1.jpg',
+quote:'每一只自卑的小猫，抬头都能看见星星。',
+secs:[
+{h:'初心',p:'这是一只为自卑症儿童设计的数字 IP：星云做毛色、铃铛做陪伴、彩虹底座做托举——希望孩子在拥抱它的时候，也能学会拥抱自己。'},
+{h:'全链路',p:'从铅笔手稿、三版角色迭代到带材质的 3D 模型，一条完整的 IP 孵化链路。页面里还可以一键打开 3D 实验室，亲手转一转这只小猫。',imgs:['assets/ip/starcat_2.jpg','assets/ip/starcat_3.jpg','assets/ip/starcat_draft.jpg','assets/ip/starcat_poster.jpg'],cap:'角色迭代 / 手稿 / 宣传页'},
+{h:'3D',p:'点击下面的按钮，进入 3D 实验室把星星猫转起来。'}],
+lab:true};
+S.avatar_ip={t:'本人教师数字人 IP',sub:'数字人微课 · AI 助教 · 2025',tags:['数字人','AI 助教','教师分身'],hero:'assets/ip/avatar_ip2.jpg',
+quote:'当「谭老师」有了数字分身，答疑就不再有下班时间。',
+secs:[{h:'应用',p:'把教师形象做成数字人 IP：微课口播、招生宣传、AI 助教问答多场景复用。学生可以在课后随时向「数字谭老师」提问——这是我把 AIGC 用在自己身上的第一个实验。',imgs:['assets/ip/avatar_ip.png','assets/ip/avatar_ip3.jpg','assets/ip/avatar_ip4.jpg'],cap:'数字人形象 · 多场景复用'}]};
+S.ip_rest={t:'空间 IP 设计集',sub:'赛博醒狮 · 英歌小武者 · 小鲸 · 围屋守护神 · 2024—2025',tags:['商业定制','吉祥物','空间IP'],hero:'assets/ip/ip_lion.jpg',
+quote:'好的空间 IP，是让一家店在被记住之前，先被喜欢。',
+secs:[
+{h:'定制',p:'为真实商业空间定制的 IP 家族：岭南茶镜餐厅的赛博朋克醒狮、潮汕餐厅的赛博英歌小武者、海洋餐厅的主题小鲸，以及茂盛世居客家围屋的守护神「小茂盛」——每一个都从空间气质出发，再反哺空间的记忆点。',imgs:['assets/ip/ip_whale1.jpg','assets/ip/ip_whale2.jpg','assets/ip/ip_yinge.jpg','assets/ip/ip_maosheng.jpg'],cap:'小鲸 · 英歌小武者 · 守护神小茂盛'}]};
+S.jingsai.hero='assets/ppt/award_03.jpg';
+
+/* ---------- AIGC 社团短片数据 ---------- */
+var FILMS=[
+{f:'f01_guandu',t:'官渡之战',by:'AIGC 古风战争短片 · 学生作品',d:'1:25'},
+{f:'f02_hei',t:'ChatGPT 小黑',by:'AI 虚拟角色短片 · 社团作品',d:'0:23'},
+{f:'f03_zhujian',t:'AI 预制菜',by:'竖屏创意广告 · 朱俊健',d:'0:31'},
+{f:'f04_wangtingting',t:'AI 人物 IP',by:'AI 角色短片 · 王婷婷',d:'0:55'},
+{f:'f05_wangjiamei',t:'铁火流星',by:'王嘉美',d:'1:39'},
+{f:'f06_linjunshuo',t:'林俊烁 作品',by:'AIGC 微电影 · 社团',d:'2:08'},
+{f:'f07_huangkaiyuan',t:'黄凯源 作品',by:'AIGC 微电影 · 社团',d:'1:27'},
+{f:'f08_zhangjialan',t:'张嘉岚 作品',by:'AIGC 微电影 · 社团',d:'2:08'},
+{f:'f09_zouxinyi',t:'邹馨怡 作品',by:'AIGC 微电影 · 社团',d:'1:53'},
+{f:'f10_group1',t:'第一组 作品',by:'小组共创 · 社团',d:'0:38'},
+{f:'f11_group4',t:'第四组 作品',by:'小组共创 · 社团',d:'0:57'},
+{f:'f12_courseware',t:'本人制作课件视频',by:'教师 demo',d:'1:23'}
+];
+
+/* ---------- 胶片带引擎 ---------- */
+var fFocus=0;
+(function(){
+  var strip=document.getElementById('strip');
+  if(!strip)return;
+  var h='';
+  FILMS.forEach(function(f,i){
+    h+='<div class="fcard" data-i="'+i+'"><span class="fnum">F'+String(i+1).padStart(2,'0')+'</span>'
+      +'<img src="assets/films/'+f.f+'_poster.jpg" alt="'+f.t+'">'
+      +'<div class="ftitle">'+f.t+'<small>'+f.by+' · '+f.d+'</small></div>'
+      +'<div class="play"><i>▶</i></div></div>';
+  });
+  strip.innerHTML=h;
+  var cards=strip.children;
+  var N=FILMS.length;
+  function wrapDist(i,f){
+    var d=i-f;
+    if(d>N/2)d-=N;
+    if(d<-N/2)d+=N;
+    return d;
+  }
+  function layout(){
+    for(var i=0;i<cards.length;i++){
+      var d=wrapDist(i,fFocus), ad=Math.abs(d);
+      var tx=d*348, ry=Math.max(-40,Math.min(40,-d*38)), sc=Math.max(.6,1-.13*ad), tz=-ad*130;
+      var op=ad>3? 0 : 1-.2*ad;
+      cards[i].style.transform='translateX('+tx+'px) rotateY('+ry+'deg) scale('+sc+') translateZ('+tz+'px)';
+      cards[i].style.opacity=op;
+      cards[i].style.zIndex=100-ad;
+      cards[i].classList.toggle('nf', d!==0);
+      cards[i].style.pointerEvents = ad>3 ? 'none' : 'auto';
+    }
+  }
+  layout();
+  window.__filmLayout=layout;
+  strip.addEventListener('click',function(e){
+    var card=e.target.closest('.fcard'); if(!card)return;
+    if(window.__dragged)return;
+    var i=+card.getAttribute('data-i');
+    if(i===fFocus) openFilm(i); else { fFocus=i; layout(); }
+  });
+  // 拖拽滑动
+  var sx=null;
+  var wrap=document.getElementById('stripWrap');
+  wrap.addEventListener('pointerdown',function(e){ sx=e.clientX; window.__dragged=false; });
+  wrap.addEventListener('pointermove',function(e){
+    if(sx!==null && Math.abs(e.clientX-sx)>10) window.__dragged=true;
+  });
+  wrap.addEventListener('pointerup',function(e){
+    if(sx===null)return;
+    var dx=e.clientX-sx; sx=null;
+    if(Math.abs(dx)>46){ filmMove(dx<0?1:-1); setTimeout(function(){window.__dragged=false;},80); }
+  });
+  addEventListener('keydown',function(e){
+    if(document.getElementById('filmModal').classList.contains('on'))return;
+    if(e.key==='ArrowLeft')filmMove(-1);
+    if(e.key==='ArrowRight')filmMove(1);
+  });
+})();
+function filmMove(dir){
+  fFocus=(fFocus+dir+FILMS.length)%FILMS.length;
+  if(window.__filmLayout)window.__filmLayout();
+}
+function openFilm(i){
+  var f=FILMS[i], v=document.getElementById('fmVideo');
+  v.src='assets/films/'+f.f+'.mp4';
+  v.poster='assets/films/'+f.f+'_poster.jpg';
+  document.getElementById('fmTitle').textContent='F'+String(i+1).padStart(2,'0')+' 《'+f.t+'》';
+  document.getElementById('fmSub').textContent=f.by+' · '+f.d;
+  document.getElementById('filmModal').classList.add('on');
+  document.body.style.overflow='hidden';
+  window.__filmIdx=i;
+  v.play().catch(function(){});
+}
+function filmStep(dir){ var i=(window.__filmIdx+dir+FILMS.length)%FILMS.length; openFilm(i); }
+function closeFilm(){
+  var v=document.getElementById('fmVideo');
+  v.pause(); v.removeAttribute('src'); v.load();
+  document.getElementById('filmModal').classList.remove('on');
+  document.body.style.overflow='';
+}
+
+/* ---------- 故事引擎 ---------- */
+var storyEl=document.getElementById('story'), stBody=document.getElementById('stBody');
+function openStory(id){
+  var d=S[id]; if(!d)return;
+  var h='<h1>'+d.t+'</h1>';
+  h+='<div class="st-sub">'+d.sub+'</div>';
+  h+='<div class="st-tags">'+d.tags.map(function(t){return '<span>'+t+'</span>';}).join('')+'</div>';
+  h+='<div class="st-hero"><img src="'+d.hero+'" alt=""></div>';
+  if(d.video)h+='<div class="video-box"><video src="'+d.video+'" controls preload="metadata" poster="assets_media/sztv_poster.jpg"></video></div>';
+  if(d.quote)h+='<div class="quote">'+d.quote+'</div>';
+  if(d.facts){h+='<div class="fact">';d.facts.forEach(function(f){h+='<div><i>'+f[0]+'</i><b>'+f[1]+'</b></div>';});h+='</div>';}
+  if(d.launch){h+='<div class="launch-big"><div><div class="t1">'+d.launch.t1+'</div><div class="t2">'+d.launch.t2+'</div></div><a href="'+d.launch.url+'" target="_blank" rel="noopener">ENTER →</a></div>';}
+  d.secs.forEach(function(s){
+    if(s.h)h+='<h2>'+s.h+'</h2>';
+    if(s.p)h+='<p>'+s.p+'</p>';
+    if(s.imgs){h+='<div class="gal">';s.imgs.forEach(function(im){var wd=im.charAt(0)==='*';var src=wd?im.slice(1):im;h+='<figure'+(wd?' class="wide"':'')+'><img src="'+src+'" alt="" loading="lazy"><figcaption>'+s.cap+'</figcaption></figure>';});h+='</div>';}
+  });
+  if(d.lab)h+='<div class="launch-big"><div><div class="t1">STARCAT 3D LAB</div><div class="t2">亲手转一转这只星星猫</div></div><a href="javascript:void(0)" onclick="openLab()">进入 3D →</a></div>';
+  if(d.awards){h+='<h2>荣誉</h2><div class="award-row">';d.awards.forEach(function(a){h+='<span><b>◆</b> '+a+'</span>';});h+='</div>';}
+  if(d.ext){h+='<h2>媒体原文</h2><div class="ext-links">';d.ext.forEach(function(e){h+='<a href="'+e.url+'" target="_blank" rel="noopener"><b>'+e.tag+'</b> '+e.label+' ↗</a>';});h+='</div>';}
+  stBody.innerHTML=h;
+  /* 奇数图自动补满行：最后一张横跨全宽，避免网格行尾空缺 */
+  stBody.querySelectorAll('.gal').forEach(function(g){
+    var f=g.querySelectorAll('figure:not(.wide)');
+    if(f.length%2===1&&f.length>1)f[f.length-1].classList.add('wide');
+  });
+  storyEl.classList.add('on');
+  storyEl.scrollTop=0;
+  document.body.style.overflow='hidden';
+}
+function closeStory(){
+  storyEl.classList.remove('on');
+  document.body.style.overflow='';
+  var v=stBody.querySelector('video'); if(v)v.pause();
+}
+document.addEventListener('click',function(e){
+  var c=e.target.closest('.card[data-story]');
+  if(c) openStory(c.getAttribute('data-story'));
+});
+storyEl.addEventListener('click',function(e){ if(e.target===storyEl) closeStory(); });
+document.getElementById('filmModal').addEventListener('click',function(e){ if(e.target===this) closeFilm(); });
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){ closeStory(); closeFilm(); closeLab(); closeLightbox(); }
+});
+
+/* ---------- 灯箱 ---------- */
+var lb=document.getElementById('lightbox'), lbImg=document.getElementById('lbImg'), lbCap=document.getElementById('lbCap');
+function openLightbox(src,cap){ lbImg.src=src; lbCap.textContent=cap||''; lb.classList.add('on'); document.body.style.overflow='hidden'; }
+function closeLightbox(){ lb.classList.remove('on'); document.body.style.overflow=''; }
+document.addEventListener('click',function(e){
+  var im=e.target;
+  if(im.tagName!=='IMG')return;
+  if(im.closest('.strip'))return; // 胶片带卡片有自己的交互
+  var box=im.closest('.gal')||im.closest('.cert')||im.closest('.st-hero');
+  if(!box)return;
+  e.stopPropagation();
+  var cap='';
+  if(im.closest('.cert')){ var sp=im.closest('.cert').querySelector('span'); cap=sp?sp.textContent:''; }
+  if(im.closest('.gal')){ var fc=im.closest('figure'); if(fc&&im===fc.querySelector('img')){ var f2=fc.querySelector('figcaption'); cap=f2?f2.textContent:''; } }
+  openLightbox(im.src,cap);
+});
+lb.addEventListener('click',function(){ closeLightbox(); });
+
+/* ---------- 3D 实验室（懒加载 three.js） ---------- */
+var labInited=false, labModal=document.getElementById('lab3d');
+function openLab(){
+  labModal.classList.add('on'); document.body.style.overflow='hidden';
+  if(labInited)return;
+  labInited=true;
+  loadScript('assets/vendor/three.min.js',function(){
+    loadScript('assets/vendor/GLTFLoader.js',function(){
+      loadScript('assets/vendor/OrbitControls.js',function(){
+        loadScript('assets/ip/starcat_glb.js',initLab);
+      });
+    });
+  });
+}
+function closeLab(){ labModal.classList.remove('on'); document.body.style.overflow=''; }
+labModal.addEventListener('click',function(e){ if(e.target===labModal) closeLab(); });
+function loadScript(src,cb){
+  var s=document.createElement('script'); s.src=src; s.onload=cb;
+  s.onerror=function(){ document.getElementById('labLoad').textContent='3D 资源加载失败'; };
+  document.head.appendChild(s);
+}
+function initLab(){
+  var panel=labModal.querySelector('.lab-panel');
+  var scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x0A1810);
+  var camera=new THREE.PerspectiveCamera(38, panel.clientWidth/panel.clientHeight, .1, 100);
+  var renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(panel.clientWidth, panel.clientHeight);
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  panel.appendChild(renderer.domElement);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x1c3348,1.05));
+  var d1=new THREE.DirectionalLight(0xffffff,1.05); d1.position.set(3,5,4); scene.add(d1);
+  var d2=new THREE.DirectionalLight(0x66ddff,.5); d2.position.set(-4,2,-3); scene.add(d2);
+  var arr=Uint8Array.from(atob(STCAT_GLB),function(c){return c.charCodeAt(0);});
+  var buf=arr.buffer;
+  new THREE.GLTFLoader().parse(buf,'',function(g){
+    var m=g.scene;
+    var box=new THREE.Box3().setFromObject(m);
+    var size=box.getSize(new THREE.Vector3()).length();
+    var center=box.getCenter(new THREE.Vector3());
+    m.position.sub(center);
+    scene.add(m);
+    camera.position.set(size*.55,size*.4,size*1.5);
+    camera.lookAt(0,0,0);
+    var controls=new THREE.OrbitControls(camera,renderer.domElement);
+    controls.enableDamping=true; controls.autoRotate=!REDUCE; controls.autoRotateSpeed=2.4;
+    var idleT=null;
+    controls.addEventListener('start',function(){ controls.autoRotate=false; if(idleT)clearTimeout(idleT); });
+    controls.addEventListener('end',function(){ idleT=setTimeout(function(){ controls.autoRotate=!REDUCE; },4000); });
+    renderer.domElement.addEventListener('dblclick',function(){ camera.position.set(size*.55,size*.4,size*1.5); controls.target.set(0,0,0); });
+    document.getElementById('labLoad').style.display='none';
+    document.getElementById('labSpin').style.display='none';
+    (function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,camera); })();
+    addEventListener('resize',function(){
+      camera.aspect=panel.clientWidth/panel.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(panel.clientWidth,panel.clientHeight);
+    });
+  },function(err){
+    document.getElementById('labLoad').textContent='3D 模型解析失败';
+    document.getElementById('labSpin').style.display='none';
+  });
+}
+</script>
+</body>
+</html>
