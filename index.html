@@ -1423,5 +1423,91 @@ function initLab(){
 
 
 </script>
+
+<!-- ============ 背景音乐（自动播放 + 手动开关） ============ -->
+<audio id="bgm" src="assets/bg_music.mp3" loop preload="auto"></audio>
+<button id="bgm-btn" class="bgm-btn" aria-label="播放/暂停背景音乐" title="背景音乐">
+  <span class="bgm-ic">♪</span>
+</button>
+<style>
+  .bgm-btn{position:fixed;right:22px;bottom:22px;z-index:99998;width:46px;height:46px;border-radius:99px;border:1.5px solid rgba(255,255,255,.35);background:rgba(0,20,15,.55);color:#A9FFE3;font-size:20px;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 18px rgba(0,0,0,.35);transition:transform .2s,background .2s,border-color .2s}
+  .bgm-btn:hover{transform:scale(1.08);background:rgba(0,40,30,.7);border-color:#A9FFE3}
+  .bgm-btn.playing .bgm-ic{animation:bgmSpin 3s linear infinite}
+  .bgm-btn.muted .bgm-ic{opacity:.45}
+  @keyframes bgmSpin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+</style>
+<script>
+(function(){
+  var bgm=document.getElementById('bgm');
+  var btn=document.getElementById('bgm-btn');
+  var started=false;
+
+  function fadeTo(v){
+    var t=Date.now(),from=bgm.volume,dur=1200;
+    function step(){
+      var k=Math.min(1,(Date.now()-t)/dur);
+      bgm.volume=from+(v-from)*k;
+      if(k<1)requestAnimationFrame(step);
+    }
+    step();
+  }
+
+  function tryAuto(){
+    bgm.volume=0;
+    var p=bgm.play();
+    if(p&&p.then){
+      p.then(function(){
+        started=true;
+        btn.classList.add('playing');
+        fadeTo(0.5);
+      }).catch(function(){
+        btn.classList.add('muted');
+      });
+    }
+  }
+
+  function resume(){
+    if(started)return;
+    bgm.volume=0.5;
+    var p=bgm.play();
+    if(p&&p.then)p.then(function(){
+      started=true;
+      btn.classList.remove('muted');
+      btn.classList.add('playing');
+    }).catch(function(){});
+  }
+
+  btn.addEventListener('click',function(e){
+    e.stopPropagation();
+    if(bgm.paused){
+      bgm.volume=0.5;
+      bgm.play().then(function(){
+        started=true;
+        btn.classList.remove('muted');
+        btn.classList.add('playing');
+      }).catch(function(){});
+    }else{
+      bgm.pause();
+      started=false;
+      btn.classList.remove('playing');
+    }
+  });
+
+  var first=true;
+  function onFirst(){
+    if(!first)return;
+    first=false;
+    resume();
+    window.removeEventListener('click',onFirst);
+    window.removeEventListener('touchstart',onFirst);
+    window.removeEventListener('keydown',onFirst);
+  }
+  window.addEventListener('click',onFirst);
+  window.addEventListener('touchstart',onFirst);
+  window.addEventListener('keydown',onFirst);
+
+  tryAuto();
+})();
+</script>
 </body>
 </html>
